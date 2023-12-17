@@ -20,9 +20,9 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     const clusterName = id+'-'+props.project;
 
     const devVpcId = await getVpcId(BuildEnv.dev);
-    // const sandboxVpcId = await getVpcId(BuildEnv.sandbox);
-    // const testVpcId = await getVpcId(BuildEnv.test);
-    // const prodVpcId = await getVpcId(BuildEnv.prod);
+    const sandboxVpcId = await getVpcId(BuildEnv.sandbox);
+    const testVpcId = await getVpcId(BuildEnv.test);
+    const prodVpcId = await getVpcId(BuildEnv.prod);
 
     const account = BuildEnv.tools.aws.account;
     const region = BuildEnv.tools.aws.region;
