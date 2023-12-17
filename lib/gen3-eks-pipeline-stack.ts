@@ -2,7 +2,7 @@ import * as blueprints from '@aws-quickstart/eks-blueprints';
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import {BuildEnv, getVpcId} from "gen3-aws-config/dist/environments";
+import {BuildEnv, getVpcId, EksPipelineRepo } from "gen3-aws-config/dist/environments";
 import *  as clusterConfig from  'gen3-aws-config/dist/cluster'
 import {TeamPlatform} from "gen3-aws-config/dist/teams";
 
@@ -83,18 +83,18 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
     // @ts-ignore
     blueprints.CodePipelineStack.builder()
-        .name('gen3-infra-pipeline-2')
-        .owner('AustralianBioCommons')
+        .name(`gen3-eks-${BuildEnv.tools.name}`)
+        .owner(EksPipelineRepo.gitRepoOwner)
         .codeBuildPolicies(blueprints.DEFAULT_BUILD_POLICIES)
         .repository({
-          repoUrl: 'gen3-aws-cdk',
-          credentialsSecretName: 'gen3_github_token',
-          targetRevision: 'refactor',
+          repoUrl: EksPipelineRepo.repoUrl,
+          credentialsSecretName: EksPipelineRepo.credentialsSecretName,
+          targetRevision: EksPipelineRepo.tagRevision,
         })
         .stage({
           id: 'sandbox',
           stackBuilder: blueprint
-              .clone('ap-southeast-2')
+              .clone(region)
               .name(`${clusterName}-${BuildEnv.sandbox.name}`)
               .addOns(...clusterConfig.sandboxClusterAddons(clusterName))
               .teams(...sandboxTeams)
@@ -108,7 +108,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         .stage({
           id: 'dev',
           stackBuilder: blueprint
-              .clone('ap-southeast-2')
+              .clone(region)
               .name(`${clusterName}-${BuildEnv.dev.name}`)
               .addOns(...clusterConfig.devClusterAddons(clusterName))
               .teams(...devTeams)
