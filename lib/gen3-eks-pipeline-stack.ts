@@ -8,7 +8,6 @@ import {TeamPlatform} from "gen3-aws-config/dist/teams";
 
 
 export interface Gen3EksPipelineStackProps {
-  env: cdk.Environment;
   project: string;
 
 }
@@ -20,10 +19,22 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     const clusterName = id+'-'+props.project;
 
     const devVpcId = await getVpcId(BuildEnv.dev);
-    const sandboxVpcId = await getVpcId(BuildEnv.sandbox);
-    const testVpcId = await getVpcId(BuildEnv.test);
-    const prodVpcId = await getVpcId(BuildEnv.prod);
+    // const sandboxVpcId = await getVpcId(BuildEnv.sandbox);
+    // const testVpcId = await getVpcId(BuildEnv.test);
+    // const prodVpcId = await getVpcId(BuildEnv.prod);
 
+    const sandboxTeams: Array<blueprints.Team> = [
+      new TeamPlatform(BuildEnv.sandbox),
+    ];
+    const devTeams: Array<blueprints.Team> = [
+      new TeamPlatform(BuildEnv.dev),
+    ];
+    const testTeams: Array<blueprints.Team> = [
+      new TeamPlatform(BuildEnv.test),
+    ];
+    const prodTeams: Array<blueprints.Team> = [
+      new TeamPlatform(BuildEnv.prod),
+    ];
     const account = BuildEnv.tools.aws.account;
     const region = BuildEnv.tools.aws.region;
 
@@ -32,9 +43,6 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     blueprints.utils.logger.settings.minLevel = 3; // info
     blueprints.utils.userLog.settings.minLevel = 2; // debug
 
-    const teams: Array<blueprints.Team> = [
-      new TeamPlatform(account),
-    ];
 
     const nodeRole = new blueprints.CreateRoleProvider('gen3-node-role', new iam.ServicePrincipal('ec2.amazonaws.com'),
         [
@@ -71,7 +79,6 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         .account(account)
         .region(region)
         .addOns(...addOns)
-        .teams(...teams)
         .resourceProvider(`gen3-node-role-${id}`, nodeRole);
 
     // @ts-ignore
@@ -90,6 +97,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               .clone('ap-southeast-2')
               .name(`${clusterName}-${BuildEnv.sandbox.name}`)
               .addOns(...clusterConfig.sandboxClusterAddons(clusterName))
+              .teams(...sandboxTeams)
               .clusterProvider(clusterConfig.sandboxClusterProvider(clusterName))
               .resourceProvider(
                   blueprints.GlobalResources.Vpc,
@@ -103,6 +111,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               .clone('ap-southeast-2')
               .name(`${clusterName}-${BuildEnv.dev.name}`)
               .addOns(...clusterConfig.devClusterAddons(clusterName))
+              .teams(...devTeams)
               .clusterProvider(clusterConfig.devClusterProvider(clusterName))
               .resourceProvider(
                   blueprints.GlobalResources.Vpc,
@@ -117,7 +126,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
             ],
           },
         })
-        .build(scope, id + '-stack', props);
+        .build(scope, id + '-stack', {env: BuildEnv.tools.aws});
   }
 
 }
