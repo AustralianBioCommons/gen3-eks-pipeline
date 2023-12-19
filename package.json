@@ -8,7 +8,9 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "preinstall": "npm run co:login",
+    "co:login": "aws codeartifact login --tool npm --repository gen3cdk --domain devbiocommons --namespace @cad-aubiocommons"
   },
   "devDependencies": {
     "@types/jest": "^29.5.5",
@@ -21,9 +23,9 @@
   },
   "dependencies": {
     "@aws-quickstart/eks-blueprints": "^1.12.0",
+    "@cad-aubiocommons/gen3-aws-config": "^0.1.6",
     "aws-cdk-lib": "2.99.1",
     "constructs": "^10.0.0",
-    "gen3-aws-config": "github:AustralianBioCommons/gen3-aws-config#main",
     "source-map-support": "^0.5.21"
   }
 }

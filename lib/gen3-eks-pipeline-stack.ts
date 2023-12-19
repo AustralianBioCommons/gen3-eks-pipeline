@@ -2,9 +2,9 @@ import * as blueprints from '@aws-quickstart/eks-blueprints';
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import {BuildEnv, getVpcId, EksPipelineRepo } from "gen3-aws-config/dist/environments";
-import *  as clusterConfig from  'gen3-aws-config/dist/cluster'
-import {TeamPlatform} from "gen3-aws-config/dist/teams";
+import {BuildEnv, EksPipelineRepo, Project } from "@cad-aubiocommons/gen3-aws-config/dist/environments";
+import *  as clusterConfig from  '@cad-aubiocommons/gen3-aws-config/dist/cluster'
+import {TeamPlatform} from "@cad-aubiocommons/gen3-aws-config/dist/teams";
 
 
 export interface Gen3EksPipelineStackProps {
@@ -16,11 +16,11 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
   async buildAsync(scope: Construct, id: string, props: Gen3EksPipelineStackProps) {
 
-    const clusterName = id+'-'+props.project;
+    const clusterName = id+'-'+Project;
 
-    const devVpcId = await getVpcId(BuildEnv.dev);
+    const devVpcId = BuildEnv.dev.vpcId;
     // const sandboxVpcId = await getVpcId(BuildEnv.sandbox);
-    // const testVpcId = await getVpcId(BuildEnv.test);
+    const testVpcId = BuildEnv.test.vpcId;
     // const prodVpcId = await getVpcId(BuildEnv.prod);
 
     const sandboxTeams: Array<blueprints.Team> = [
@@ -90,34 +90,34 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           repoUrl: EksPipelineRepo.repoUrl,
           credentialsSecretName: EksPipelineRepo.credentialsSecretName,
           targetRevision: EksPipelineRepo.tagRevision,
-        })
-        .stage({
-          id: 'sandbox',
-          stackBuilder: blueprint
-              .clone(region)
-              .name(`${clusterName}-${BuildEnv.sandbox.name}`)
-              .addOns(...clusterConfig.sandboxClusterAddons(clusterName))
-              .teams(...sandboxTeams)
-              .clusterProvider(clusterConfig.sandboxClusterProvider(clusterName))
-              .resourceProvider(
-                  blueprints.GlobalResources.Vpc,
-                  new blueprints.VpcProvider(devVpcId),
-              )
-              .withEnv(BuildEnv.sandbox.aws),
-        })
+        }).enableCrossAccountKeys()
         .stage({
           id: 'dev',
           stackBuilder: blueprint
               .clone(region)
               .name(`${clusterName}-${BuildEnv.dev.name}`)
-              .addOns(...clusterConfig.devClusterAddons(clusterName))
+              .addOns(...clusterConfig.sandboxClusterAddons(clusterName))
               .teams(...devTeams)
-              .clusterProvider(clusterConfig.devClusterProvider(clusterName))
+              .clusterProvider(clusterConfig.sandboxClusterProvider(clusterName))
               .resourceProvider(
                   blueprints.GlobalResources.Vpc,
                   new blueprints.VpcProvider(devVpcId),
               )
               .withEnv(BuildEnv.dev.aws),
+        })
+        .stage({
+          id: 'test',
+          stackBuilder: blueprint
+              .clone(region)
+              .name(`${clusterName}-${BuildEnv.test.name}`)
+              .addOns(...clusterConfig.devClusterAddons(clusterName))
+              .teams(...testTeams)
+              .clusterProvider(clusterConfig.devClusterProvider(clusterName))
+              .resourceProvider(
+                  blueprints.GlobalResources.Vpc,
+                  new blueprints.VpcProvider(testVpcId),
+              )
+              .withEnv(BuildEnv.test.aws),
           stageProps: {
             pre: [
               new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
