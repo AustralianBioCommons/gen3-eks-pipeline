@@ -13,7 +13,11 @@ export const buildPolicyStatements = [
                 'cloudformation:DescribeStacks',
                 'codebuild:BatchGetBuilds',
                 'codebuild:StartBuild',
-                'codebuild:StopBuild'
+                'codebuild:StopBuild',
+                "sts:AssumeRole",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+                "cloudformation:*"
             ],
         resources: ['*']
     }),
@@ -24,5 +28,5 @@ export const buildPolicyStatements = [
         resources: ['*']
     })
 
-
 ]
+

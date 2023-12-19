@@ -5,6 +5,7 @@ import { Construct } from 'constructs';
 import {BuildEnv, EksPipelineRepo, Project } from "./environments";
 import *  as clusterConfig from  './cluster'
 import {TeamPlatform} from "./teams";
+import {buildPolicyStatements} from "./iam";
 
 
 export interface Gen3EksPipelineStackProps {
@@ -85,7 +86,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     blueprints.CodePipelineStack.builder()
         .name(`gen3-eks-${BuildEnv.tools.name}`)
         .owner(EksPipelineRepo.gitRepoOwner)
-        .codeBuildPolicies(blueprints.DEFAULT_BUILD_POLICIES)
+        .codeBuildPolicies(buildPolicyStatements)
         .repository({
           repoUrl: EksPipelineRepo.repoUrl,
           credentialsSecretName: EksPipelineRepo.credentialsSecretName,
