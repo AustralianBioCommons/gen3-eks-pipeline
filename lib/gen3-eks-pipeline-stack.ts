@@ -2,9 +2,9 @@ import * as blueprints from '@aws-quickstart/eks-blueprints';
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import {BuildEnv, EksPipelineRepo, Project } from "@cad-aubiocommons/gen3-aws-config/dist/environments";
-import *  as clusterConfig from  '@cad-aubiocommons/gen3-aws-config/dist/cluster'
-import {TeamPlatform} from "@cad-aubiocommons/gen3-aws-config/dist/teams";
+import {BuildEnv, EksPipelineRepo, Project } from "./environments";
+import *  as clusterConfig from  './cluster'
+import {TeamPlatform} from "./teams";
 
 
 export interface Gen3EksPipelineStackProps {
@@ -98,7 +98,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               .name(`${clusterName}-${BuildEnv.dev.name}`)
               .addOns(...clusterConfig.sandboxClusterAddons(clusterName))
               .teams(...devTeams)
-              .clusterProvider(clusterConfig.sandboxClusterProvider(clusterName))
+              .clusterProvider(clusterConfig.devClusterProvider(clusterName))
               .resourceProvider(
                   blueprints.GlobalResources.Vpc,
                   new blueprints.VpcProvider(devVpcId),
@@ -112,7 +112,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               .name(`${clusterName}-${BuildEnv.test.name}`)
               .addOns(...clusterConfig.devClusterAddons(clusterName))
               .teams(...testTeams)
-              .clusterProvider(clusterConfig.devClusterProvider(clusterName))
+              .clusterProvider(clusterConfig.testClusterProvider(clusterName))
               .resourceProvider(
                   blueprints.GlobalResources.Vpc,
                   new blueprints.VpcProvider(testVpcId),
