@@ -54,7 +54,7 @@ export const testBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
     name: 'testCluster',
     bootstrapRepo: {
         ...bootstrapRepo,
-        path: "environments/test",
+        path: "environments/testd",
     },
     values: {
         server: {
