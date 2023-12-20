@@ -1,5 +1,6 @@
 import * as blueprints from '@aws-quickstart/eks-blueprints';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+
 import {
     CapacityType,
     KubernetesVersion,
@@ -16,7 +17,10 @@ const bootstrapRepo: blueprints.ApplicationRepository = {
     targetRevision: "main",
 };
 
+
+
 export const sandboxBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
+    adminPasswordSecretName: 'cad-argocdAdmin-sandbox',
     bootstrapRepo: {
         ...bootstrapRepo,
         path: "environments/sandbox",
@@ -31,6 +35,7 @@ export const sandboxBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
 });
 
 export const devBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
+    adminPasswordSecretName: 'cad-argocdAdmin-dev',
     bootstrapRepo: {
         ...bootstrapRepo,
         path: "environments/dev",
@@ -45,6 +50,7 @@ export const devBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
 });
 
 export const testBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
+    adminPasswordSecretName: 'cad-argocdAdmin-test',
     bootstrapRepo: {
         ...bootstrapRepo,
         path: "environments/test",

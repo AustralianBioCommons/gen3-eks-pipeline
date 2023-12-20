@@ -3,9 +3,9 @@ import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import * as sm from 'aws-cdk-lib/aws-secretsmanager';
-import {BuildEnv, EksPipelineRepo, Project } from "@cad-aubiocommons/gen3-aws-config/dist/environments";
-import *  as clusterConfig from  '@cad-aubiocommons/gen3-aws-config/dist/cluster'
-import {TeamPlatform} from "@cad-aubiocommons/gen3-aws-config/dist/teams";
+import {BuildEnv, EksPipelineRepo, Project } from "./environments";
+import *  as clusterConfig from  './cluster'
+import {TeamPlatform} from "./teams";
 import {buildPolicyStatements} from "./iam";
 
 
@@ -93,20 +93,20 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           credentialsSecretName: EksPipelineRepo.credentialsSecretName,
           targetRevision: EksPipelineRepo.tagRevision,
         }).enableCrossAccountKeys()
-        .stage({
-          id: 'dev',
-          stackBuilder: blueprint
-              .clone(region)
-              .name(`${clusterName}-${BuildEnv.dev.name}`)
-              .addOns(...clusterConfig.sandboxClusterAddons(clusterName))
-              .teams(...devTeams)
-              .clusterProvider(clusterConfig.devClusterProvider(clusterName))
-              .resourceProvider(
-                  blueprints.GlobalResources.Vpc,
-                  new blueprints.VpcProvider(devVpcId),
-              )
-              .withEnv(BuildEnv.tools.aws),
-        })
+        // .stage({
+        //   id: 'dev',
+        //   stackBuilder: blueprint
+        //       .clone(region)
+        //       .name(`${clusterName}-${BuildEnv.dev.name}`)
+        //       .addOns(...clusterConfig.sandboxClusterAddons(clusterName))
+        //       .teams(...devTeams)
+        //       .clusterProvider(clusterConfig.devClusterProvider(clusterName))
+        //       .resourceProvider(
+        //           blueprints.GlobalResources.Vpc,
+        //           new blueprints.VpcProvider(devVpcId),
+        //       )
+        //       .withEnv(BuildEnv.tools.aws),
+        // })
         .stage({
           id: 'test',
           stackBuilder: blueprint
