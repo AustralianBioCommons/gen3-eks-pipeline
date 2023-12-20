@@ -51,6 +51,7 @@ export const devBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
 
 export const testBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
     adminPasswordSecretName: 'cad-argocdAdmin-test',
+    name: 'testCluster',
     bootstrapRepo: {
         ...bootstrapRepo,
         path: "environments/test",
