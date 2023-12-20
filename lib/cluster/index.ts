@@ -85,6 +85,23 @@ export function devClusterAddons(clusterName: string) {
     return addOns;
 }
 
+export function testClusterAddons(clusterName: string) {
+
+    const addOns: Array<blueprints.ClusterAddOn> = [
+        // Add additional addons here
+        new blueprints.addons.CloudWatchLogsAddon({
+            namespace: 'aws-for-fluent-bit',
+            createNamespace: true,
+            serviceAccountName: 'aws-fluent-bit-for-cw-sa',
+            logGroupPrefix: `/aws/eks/sandbox-${clusterName}`,
+            logRetentionDays: 90,
+        }),
+        testBootstrapArgoCd,
+    ];
+
+    return addOns;
+}
+
 /**
  *
  * @param clusterName

@@ -112,7 +112,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           stackBuilder: blueprint
               .clone(region)
               .name(`${clusterName}-${BuildEnv.test.name}`)
-              .addOns(...clusterConfig.devClusterAddons(clusterName))
+              .addOns(...clusterConfig.testClusterAddons(clusterName))
               .teams(...testTeams)
               .clusterProvider(clusterConfig.testClusterProvider(clusterName))
               .resourceProvider(
