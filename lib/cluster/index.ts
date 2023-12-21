@@ -62,6 +62,12 @@ export const testBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
                 type: "LoadBalancer",
             },
         },
+        helm: {
+            valueFiles: [
+                "values.yaml",
+                "gen3-values.yaml"
+            ]
+        }
     },
 });
 
