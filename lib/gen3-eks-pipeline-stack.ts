@@ -24,6 +24,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     // const sandboxVpcId = await getVpcId(BuildEnv.sandbox);
     const testVpcId = BuildEnv.test.vpcId;
     // const prodVpcId = await getVpcId(BuildEnv.prod);
+    const uatVpcId = BuildEnv.uat.vpcId;
 
     const sandboxTeams: Array<blueprints.Team> = [
       new TeamPlatform(BuildEnv.sandbox),
@@ -33,6 +34,10 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     ];
     const testTeams: Array<blueprints.Team> = [
       new TeamPlatform(BuildEnv.test),
+    ];
+
+    const uatTeams: Array<blueprints.Team> = [
+      new TeamPlatform(BuildEnv.uat),
     ];
     const prodTeams: Array<blueprints.Team> = [
       new TeamPlatform(BuildEnv.prod),
@@ -120,6 +125,27 @@ export class Gen3EksPipelineStack extends cdk.Stack {
                   new blueprints.VpcProvider(testVpcId),
               )
               .withEnv(BuildEnv.test.aws),
+          stageProps: {
+            pre: [
+              new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
+                  'manual-approval',
+              ),
+            ],
+          },
+        })
+        .stage({
+          id: 'uat',
+          stackBuilder: blueprint
+              .clone(region)
+              .name(`${clusterName}-${BuildEnv.uat.name}`)
+              .addOns(...clusterConfig.testClusterAddons(clusterName))
+              .teams(...uatTeams)
+              .clusterProvider(clusterConfig.uatClusterProvider(clusterName))
+              .resourceProvider(
+                  blueprints.GlobalResources.Vpc,
+                  new blueprints.VpcProvider(uatVpcId),
+              )
+              .withEnv(BuildEnv.uat.aws),
           stageProps: {
             pre: [
               new blueprints.pipelines.cdkpipelines.ManualApprovalStep(

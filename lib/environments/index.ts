@@ -82,6 +82,24 @@ export const BuildEnv = {
         },
         platformRoleName: 'AWSReservedSSO_AWSAdministratorAccess_e857afb345dbe57a'
     },
+    uat: {
+        name: "uat",
+        hostname: "data.uat.biocommons.org.au",
+        vpcId: "vpc-01dae87b51107d5fb",
+        aws: {
+            account: '232870232581',
+            region: 'ap-southeast-2',
+        },
+        rds: {
+            port: 5432,
+            engineVersion: rds.AuroraPostgresEngineVersion.VER_13_9,
+            serverlessV2MinCapacity: 0.5,
+            serverlessV2MaxCapacity: 1,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+            instances: ["fence", "master", "peregrine", "sheepdog", "indexd" ]
+        },
+        platformRoleName: 'AWSReservedSSO_AWSAdministratorAccess_e857afb345dbe57a'
+    },
     prod: {
         name: "prod",
         hostname: "data.preprod.biocommons.org.au",

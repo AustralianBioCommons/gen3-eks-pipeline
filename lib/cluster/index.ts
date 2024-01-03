@@ -17,6 +17,13 @@ const bootstrapRepo: blueprints.ApplicationRepository = {
     targetRevision: "main",
 };
 
+const uatBootstrapRepo: blueprints.ApplicationRepository = {
+    repoUrl: WORKLOAD_REPO,
+    credentialsSecretName: "github-ssh-key",
+    credentialsType: "SSH",
+    targetRevision: "refactor",
+};
+
 
 
 export const sandboxBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
@@ -71,6 +78,28 @@ export const testBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
     },
 });
 
+export const uatBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
+    adminPasswordSecretName: 'cad-argocdAdmin-test',
+    name: 'uatCluster',
+    bootstrapRepo: {
+        ...uatBootstrapRepo,
+        path: "environments/uat",
+    },
+    values: {
+        server: {
+            service: {
+                type: "LoadBalancer",
+            },
+        },
+        helm: {
+            valueFiles: [
+                "values.yaml",
+                "gen3-values.yaml"
+            ]
+        }
+    },
+});
+
 /**
  *
  * @param clusterName
@@ -104,6 +133,23 @@ export function testClusterAddons(clusterName: string) {
             logRetentionDays: 90,
         }),
         testBootstrapArgoCd,
+    ];
+
+    return addOns;
+}
+
+export function uatClusterAddons(clusterName: string) {
+
+    const addOns: Array<blueprints.ClusterAddOn> = [
+        // Add additional addons here
+        new blueprints.addons.CloudWatchLogsAddon({
+            namespace: 'aws-for-fluent-bit',
+            createNamespace: true,
+            serviceAccountName: 'aws-fluent-bit-for-cw-sa',
+            logGroupPrefix: `/aws/eks/sandbox-${clusterName}`,
+            logRetentionDays: 90,
+        }),
+        uatBootstrapArgoCd,
     ];
 
     return addOns;
@@ -210,6 +256,31 @@ export function testClusterProvider(clusterName: string) {
                     Name: 'GEN3 Cluster',
                     Type: 'ACDC',
                     ENV: 'test'
+                },
+            },
+        ],
+    });
+}
+
+export function uatClusterProvider(clusterName: string) {
+    const version = KubernetesVersion.V1_27;
+    return new blueprints.GenericClusterProvider({
+        version: version,
+        clusterName: clusterName,
+        managedNodeGroups: [
+            {
+                id: 'mng1',
+                minSize: 1,
+                maxSize: 4,
+                desiredSize: 3,
+                instanceTypes: [new ec2.InstanceType('m5.large')],
+                amiType: NodegroupAmiType.AL2_X86_64,
+                nodeGroupCapacityType: CapacityType.ON_DEMAND,
+                amiReleaseVersion: '1.27.6-20231027',
+                tags: {
+                    Name: 'GEN3 Cluster',
+                    Type: 'ACDC',
+                    ENV: 'uat'
                 },
             },
         ],
