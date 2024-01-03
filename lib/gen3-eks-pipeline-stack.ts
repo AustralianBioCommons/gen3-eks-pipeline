@@ -138,9 +138,9 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           stackBuilder: blueprint
               .clone(region)
               .name(`${clusterName}-${BuildEnv.uat.name}`)
-              .addOns(...clusterConfig.testClusterAddons(clusterName))
+              .addOns(...clusterConfig.uatClusterAddons(`${clusterName}-${BuildEnv.uat.name}`))
               .teams(...uatTeams)
-              .clusterProvider(clusterConfig.uatClusterProvider(clusterName))
+              .clusterProvider(clusterConfig.uatClusterProvider(`${clusterName}-${BuildEnv.uat.name}`))
               .resourceProvider(
                   blueprints.GlobalResources.Vpc,
                   new blueprints.VpcProvider(uatVpcId),
