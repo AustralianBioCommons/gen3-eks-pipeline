@@ -72,13 +72,13 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       new blueprints.addons.KubeProxyAddOn(),
       new blueprints.addons.VpcCniAddOn(),
       new blueprints.addons.EbsCsiDriverAddOn(),
-      // new blueprints.addons.ExternalsSecretsAddOn({
-      //   values: {
-      //     crds: {
-      //       createClusterSecretStore: true,
-      //     },
-      //   },
-      // }),
+      new blueprints.addons.ExternalsSecretsAddOn({
+        values: {
+          crds: {
+            createClusterSecretStore: true,
+          },
+        },
+      }),
     ];
 
     const blueprint = blueprints.EksBlueprint.builder()
