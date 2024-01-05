@@ -132,6 +132,13 @@ export function testClusterAddons(clusterName: string) {
             logGroupPrefix: `/aws/eks/sandbox-${clusterName}`,
             logRetentionDays: 90,
         }),
+        new blueprints.addons.ExternalsSecretsAddOn({
+          values: {
+            crds: {
+              createClusterSecretStore: true,
+            },
+          },
+        }),
         testBootstrapArgoCd,
     ];
 
