@@ -62,7 +62,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         new iam.FederatedPrincipal('sts.amazonaws.com',
             {
               StringEquals: { 'sts:ViaService': `eks.${this.region}.amazonaws.com` },
-              Federated: `arn:aws:iam::${this.account}:oidc-provider/oidc.eks.${this.region}.amazonaws.com/id/E60ED68B98362E7D568EA4908070A66B}`,
+              'ForAnyValue:StringLike': { 'sts:ExternalId': 'E60ED68B98362E7D568EA4908070A66B' },
             },
             'sts:AssumeRoleWithWebIdentity'),
         [iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')]
