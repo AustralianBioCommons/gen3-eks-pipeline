@@ -123,8 +123,9 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               .resourceProvider(
                   blueprints.GlobalResources.Vpc,
                   new blueprints.VpcProvider(testVpcId),
-              )
-              .withEnv(BuildEnv.test.aws),
+              ).resourceProvider('test-users-s3-bucket',
+                  new blueprints.ImportS3BucketProvider('gen3-test-users-cad', 'gen3-test-users-cad')
+              ).withEnv(BuildEnv.test.aws),
           stageProps: {
             pre: [
               new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
