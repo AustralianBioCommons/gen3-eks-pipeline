@@ -58,6 +58,10 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
         ]);
 
+    const serviceRole = new blueprints.CreateRoleProvider('gen3-service-role',
+        new iam.FederatedPrincipal('sts.amazonaws.com'),
+        [iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')]
+        );
 
     const addOns: Array<blueprints.ClusterAddOn> = [
       new blueprints.addons.AwsLoadBalancerControllerAddOn(),
@@ -86,7 +90,8 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         .account(account)
         .region(region)
         .addOns(...addOns)
-        .resourceProvider(`gen3-node-role-${id}`, nodeRole);
+        .resourceProvider(`gen3-node-role-${id}`, nodeRole)
+        .resourceProvider(`serviceRole-${id}`, serviceRole);
 
     // @ts-ignore
     blueprints.CodePipelineStack.builder()
