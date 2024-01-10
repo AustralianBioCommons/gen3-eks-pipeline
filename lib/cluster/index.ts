@@ -180,7 +180,7 @@ export function sandboxClusterAddons(clusterName: string) {
  * @param clusterName
  */
 export function sandboxClusterProvider(clusterName: string) {
-    const version = KubernetesVersion.V1_27;
+    const version = KubernetesVersion.V1_28;
     return new blueprints.GenericClusterProvider({
         version: version,
         clusterName: clusterName,
@@ -263,7 +263,7 @@ export function testClusterProvider(clusterName: string) {
 }
 
 export function uatClusterProvider(clusterName: string) {
-    const version = KubernetesVersion.V1_27;
+    const version = KubernetesVersion.V1_28;
     return new blueprints.GenericClusterProvider({
         version: version,
         clusterName: clusterName,
