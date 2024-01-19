@@ -180,7 +180,7 @@ export function sandboxClusterAddons(clusterName: string) {
  * @param clusterName
  */
 export function sandboxClusterProvider(clusterName: string) {
-    const version = KubernetesVersion.V1_27;
+    const version = KubernetesVersion.V1_28;
     return new blueprints.GenericClusterProvider({
         version: version,
         clusterName: clusterName,
@@ -193,8 +193,8 @@ export function sandboxClusterProvider(clusterName: string) {
                 instanceTypes: [new ec2.InstanceType('m5.large')],
                 amiType: NodegroupAmiType.AL2_X86_64,
                 nodeGroupCapacityType: CapacityType.ON_DEMAND,
-                //amiReleaseVersion: '1.28.5-20240110',
-                amiReleaseVersion: '1.27.6-20231027',
+                amiReleaseVersion: '1.28.5-20240110',
+                // amiReleaseVersion: '1.27.6-20231027',
                 tags: {
                     Name: 'GEN3 Cluster',
                     Type: 'ACDC',
@@ -264,7 +264,7 @@ export function testClusterProvider(clusterName: string) {
 }
 
 export function uatClusterProvider(clusterName: string) {
-    const version = KubernetesVersion.V1_27;
+    const version = KubernetesVersion.V1_28;
     return new blueprints.GenericClusterProvider({
         version: version,
         clusterName: clusterName,
@@ -277,7 +277,7 @@ export function uatClusterProvider(clusterName: string) {
                 instanceTypes: [new ec2.InstanceType('m5.large')],
                 amiType: NodegroupAmiType.AL2_X86_64,
                 nodeGroupCapacityType: CapacityType.ON_DEMAND,
-                amiReleaseVersion: '1.27.7-20231230',
+                amiReleaseVersion: '1.28.5-20240110',
                 tags: {
                     Name: 'GEN3 Cluster',
                     Type: 'ACDC',
