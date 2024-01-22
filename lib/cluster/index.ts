@@ -17,6 +17,12 @@ const bootstrapRepo: blueprints.ApplicationRepository = {
     targetRevision: "main",
 };
 
+const devBootstrapRepo: blueprints.ApplicationRepository = {
+    repoUrl: WORKLOAD_REPO,
+    credentialsSecretName: "github-ssh-key",
+    credentialsType: "SSH",
+    targetRevision: "refactor",
+};
 const uatBootstrapRepo: blueprints.ApplicationRepository = {
     repoUrl: WORKLOAD_REPO,
     credentialsSecretName: "github-ssh-key",
@@ -44,7 +50,7 @@ export const sandboxBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
 export const devBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
     adminPasswordSecretName: 'cad-argocdAdmin-dev',
     bootstrapRepo: {
-        ...bootstrapRepo,
+        ...devBootstrapRepo,
         path: "environments/dev",
     },
     values: {
