@@ -59,6 +59,12 @@ export const devBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
                 type: "LoadBalancer",
             },
         },
+        configs: {
+            cm: {
+                "accounts.tester": "login",
+                "admin.enabled": "true"
+            }
+        }
     },
 });
 
