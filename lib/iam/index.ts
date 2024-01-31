@@ -14,10 +14,11 @@ export const buildPolicyStatements = [
                 'codebuild:BatchGetBuilds',
                 'codebuild:StartBuild',
                 'codebuild:StopBuild',
-                "sts:AssumeRole",
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-                "cloudformation:*"
+                'codestar-connections:UseConnection',
+                'sts:AssumeRole',
+                'secretsmanager:GetSecretValue',
+                'secretsmanager:DescribeSecret',
+                'cloudformation:*'
             ],
         resources: ['*']
     }),
