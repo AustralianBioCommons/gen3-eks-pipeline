@@ -63,7 +63,11 @@ export const devBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
             cm: {
                 "accounts.tester": "login",
                 "admin.enabled": "true"
+            },
+            rbac: {
+                'policy.cad.csv': "g,tester, role:readonly"
             }
+
         }
     },
 });
