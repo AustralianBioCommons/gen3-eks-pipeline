@@ -69,7 +69,7 @@ export const devBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
             },
             secret: {
                 extra: {
-                    "accounts.tester.password": "replacewithSM"
+                    "accounts.tester.password": "$2y$10$lQ9RmU51My52x6ZkJibWkuWYxqmldAhT82Xh0i1QKiMHxcyEop40y"
                 }
             }
 
