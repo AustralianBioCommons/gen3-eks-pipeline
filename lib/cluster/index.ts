@@ -66,6 +66,11 @@ export const devBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
             },
             rbac: {
                 'policy.cad.csv': "g,tester, role:readonly"
+            },
+            secret: {
+                extra: {
+                    "accounts.tester.password": "replacewithSM"
+                }
             }
 
         }
