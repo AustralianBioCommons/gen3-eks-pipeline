@@ -112,6 +112,15 @@ export const uatBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
                 "values.yaml",
                 "gen3-values.yaml"
             ]
+        },
+        configs: {
+            cm: {
+                "accounts.tester": "login",
+                "admin.enabled": "true"
+            },
+            rbac: {
+                'policy.cad.csv': "g,tester, role:readonly"
+            }
         }
     },
 });
