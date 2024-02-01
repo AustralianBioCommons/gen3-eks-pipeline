@@ -122,28 +122,28 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               )
               .withEnv(BuildEnv.tools.aws),
         })
-        .stage({
-          id: 'test',
-          stackBuilder: blueprint
-              .clone(region)
-              .name(`${clusterName}-${BuildEnv.test.name}`)
-              .addOns(...clusterConfig.testClusterAddons(clusterName))
-              .teams(...testTeams)
-              .clusterProvider(clusterConfig.testClusterProvider(clusterName))
-              .resourceProvider(
-                  blueprints.GlobalResources.Vpc,
-                  new blueprints.VpcProvider(testVpcId),
-              ).resourceProvider('test-users-s3-bucket',
-                  new blueprints.ImportS3BucketProvider('gen3-test-users-cad', 'gen3-test-users-cad')
-              ).withEnv(BuildEnv.test.aws),
-          stageProps: {
-            pre: [
-              new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
-                  'manual-approval',
-              ),
-            ],
-          },
-        })
+        // .stage({
+        //   id: 'test',
+        //   stackBuilder: blueprint
+        //       .clone(region)
+        //       .name(`${clusterName}-${BuildEnv.test.name}`)
+        //       .addOns(...clusterConfig.testClusterAddons(clusterName))
+        //       .teams(...testTeams)
+        //       .clusterProvider(clusterConfig.testClusterProvider(clusterName))
+        //       .resourceProvider(
+        //           blueprints.GlobalResources.Vpc,
+        //           new blueprints.VpcProvider(testVpcId),
+        //       ).resourceProvider('test-users-s3-bucket',
+        //           new blueprints.ImportS3BucketProvider('gen3-test-users-cad', 'gen3-test-users-cad')
+        //       ).withEnv(BuildEnv.test.aws),
+        //   stageProps: {
+        //     pre: [
+        //       new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
+        //           'manual-approval',
+        //       ),
+        //     ],
+        //   },
+        // })
         .stage({
           id: 'uat',
           stackBuilder: blueprint
