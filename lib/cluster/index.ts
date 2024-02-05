@@ -3,6 +3,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 import {
     CapacityType,
+    EndpointAccess,
     KubernetesVersion,
     NodegroupAmiType,
 } from 'aws-cdk-lib/aws-eks';
@@ -244,6 +245,7 @@ export function devClusterProvider(clusterName: string) {
     return new blueprints.GenericClusterProvider({
         version: version,
         clusterName: clusterName,
+        endpointAccess: EndpointAccess.PRIVATE,
         managedNodeGroups: [
             {
                 id: 'mng1',
