@@ -1,18 +1,12 @@
 # GEN3 EKS Pipeline
 
+This repo deploys Codepipeline to deploy EKS cluster to be used for GEN3 application.
+The cluster is bootstrapped with GEN3, using ArgoCD and Helm. GEN3 is deployed and configured when the cluster is provisioned.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+To create a GEN3 EKS Cluster, add a new stage in the pipeline.
 
-## Useful commands
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `cdk deploy --all`      deploy this stack to your default AWS account/region
-* `cdk diff`        compare deployed stack with current state
-* `cdk synth`       emits the synthesized CloudFormation template
-
-## Adding a new EKS environment
+## Adding a new stage ( Cluster)
 
 ```
    blueprints.CodePipelineStack.builder()
@@ -40,3 +34,11 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
         })
         .stage({ <-- Add a new Stage here -->})
 ```
+## Useful commands
+
+* `npm run build`   compile typescript to js
+* `npm run watch`   watch for changes and compile
+* `npm run test`    perform the jest unit tests
+* `cdk deploy --all`      deploy this stack to your default AWS account/region
+* `cdk diff`        compare deployed stack with current state
+* `cdk synth`       emits the synthesized CloudFormation template
