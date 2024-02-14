@@ -14,7 +14,7 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
 ## Adding a new EKS environment
 
-`
+```
    blueprints.CodePipelineStack.builder()
         .name(`gen3-eks-${BuildEnv.tools.name}`)
         .owner(EksPipelineRepo.gitRepoOwner)
@@ -39,4 +39,4 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
               .withEnv(BuildEnv.tools.aws),
         })
         .stage({ <-- Add a new Stage here>})
-        `
+        ```
