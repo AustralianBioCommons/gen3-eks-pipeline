@@ -38,5 +38,5 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
               )
               .withEnv(BuildEnv.tools.aws),
         })
-        .stage({ <-- Add a new Stage here>})
+        .stage({ <-- Add a new Stage here -->})
         ```
