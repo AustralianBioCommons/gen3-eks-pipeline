@@ -1,4 +1,4 @@
-# Welcome to your CDK TypeScript project
+# GEN3 EKS Pipeline
 
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
