@@ -10,7 +10,7 @@
     "test": "jest",
     "cdk": "cdk",
     "preinstall": "npm run co:login",
-    "co:login": "aws codeartifact login --tool npm --repository gen3cdk --domain devbiocommons --namespace @cad-aubiocommons"
+    "co:login": "aws codeartifact login --tool npm --repository gen3cdk --domain biocommons --namespace @cad-aubiocommons"
   },
   "devDependencies": {
     "@types/jest": "^29.5.5",
