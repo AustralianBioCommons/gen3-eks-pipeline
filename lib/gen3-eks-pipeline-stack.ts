@@ -26,6 +26,8 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     // const prodVpcId = await getVpcId(BuildEnv.prod);
     const uatVpcId = BuildEnv.uat.vpcId;
 
+    const prodVpcId = BuildEnv.prod.vpcId;
+
     const sandboxTeams: Array<blueprints.Team> = [
       new TeamPlatform(BuildEnv.sandbox),
     ];
@@ -100,72 +102,111 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
     // @ts-ignore
     blueprints.CodePipelineStack.builder()
-        .name(`gen3-eks-${BuildEnv.tools.name}`)
-        .owner(EksPipelineRepo.gitRepoOwner)
-        .codeBuildPolicies(buildPolicyStatements)
-        .repository({
-          repoUrl: EksPipelineRepo.repoUrl,
-            codeStarConnectionArn: 'arn:aws:codestar-connections:ap-southeast-2:690491147947:connection/ce767af4-597d-42ce-8920-c2e9011a1616',
-          targetRevision: EksPipelineRepo.tagRevision,
-        }).enableCrossAccountKeys()
-        .stage({
-          id: 'dev',
-          stackBuilder: blueprint
-              .clone(region)
-              .name(`${clusterName}-${BuildEnv.dev.name}`)
-              .addOns(...clusterConfig.devClusterAddons(clusterName))
-              .teams(...devTeams)
-              .clusterProvider(clusterConfig.devClusterProvider(clusterName))
-              .resourceProvider(
-                  blueprints.GlobalResources.Vpc,
-                  new blueprints.VpcProvider(devVpcId),
-              )
-              .withEnv(BuildEnv.tools.aws),
-        })
-        // .stage({
-        //   id: 'test',
-        //   stackBuilder: blueprint
-        //       .clone(region)
-        //       .name(`${clusterName}-${BuildEnv.test.name}`)
-        //       .addOns(...clusterConfig.testClusterAddons(clusterName))
-        //       .teams(...testTeams)
-        //       .clusterProvider(clusterConfig.testClusterProvider(clusterName))
-        //       .resourceProvider(
-        //           blueprints.GlobalResources.Vpc,
-        //           new blueprints.VpcProvider(testVpcId),
-        //       ).resourceProvider('test-users-s3-bucket',
-        //           new blueprints.ImportS3BucketProvider('gen3-test-users-cad', 'gen3-test-users-cad')
-        //       ).withEnv(BuildEnv.test.aws),
-        //   stageProps: {
-        //     pre: [
-        //       new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
-        //           'manual-approval',
-        //       ),
-        //     ],
-        //   },
-        // })
-        .stage({
-          id: 'uat',
-          stackBuilder: blueprint
-              .clone(region)
-              .name(`${clusterName}-${BuildEnv.uat.name}`)
-              .addOns(...clusterConfig.uatClusterAddons(`${clusterName}-${BuildEnv.uat.name}`))
-              .teams(...uatTeams)
-              .clusterProvider(clusterConfig.uatClusterProvider(`${clusterName}-${BuildEnv.uat.name}`))
-              .resourceProvider(
-                  blueprints.GlobalResources.Vpc,
-                  new blueprints.VpcProvider(uatVpcId),
-              )
-              .withEnv(BuildEnv.uat.aws),
-          stageProps: {
-            pre: [
-              new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
-                  'manual-approval',
-              ),
-            ],
-          },
-        })
-        .build(scope, id + '-stack', {env: BuildEnv.tools.aws});
+      .name(`gen3-eks-${BuildEnv.tools.name}`)
+      .owner(EksPipelineRepo.gitRepoOwner)
+      .codeBuildPolicies(buildPolicyStatements)
+      .repository({
+        repoUrl: EksPipelineRepo.repoUrl,
+        codeStarConnectionArn:
+          "arn:aws:codestar-connections:ap-southeast-2:690491147947:connection/ce767af4-597d-42ce-8920-c2e9011a1616",
+        targetRevision: EksPipelineRepo.tagRevision,
+      })
+      .enableCrossAccountKeys()
+      .stage({
+        id: "dev",
+        stackBuilder: blueprint
+          .clone(region)
+          .name(`${clusterName}-${BuildEnv.dev.name}`)
+          .addOns(...clusterConfig.devClusterAddons(clusterName))
+          .teams(...devTeams)
+          .clusterProvider(clusterConfig.devClusterProvider(clusterName))
+          .resourceProvider(
+            blueprints.GlobalResources.Vpc,
+            new blueprints.VpcProvider(devVpcId)
+          )
+          .withEnv(BuildEnv.tools.aws),
+      })
+      // .stage({
+      //   id: 'test',
+      //   stackBuilder: blueprint
+      //       .clone(region)
+      //       .name(`${clusterName}-${BuildEnv.test.name}`)
+      //       .addOns(...clusterConfig.testClusterAddons(clusterName))
+      //       .teams(...testTeams)
+      //       .clusterProvider(clusterConfig.testClusterProvider(clusterName))
+      //       .resourceProvider(
+      //           blueprints.GlobalResources.Vpc,
+      //           new blueprints.VpcProvider(testVpcId),
+      //       ).resourceProvider('test-users-s3-bucket',
+      //           new blueprints.ImportS3BucketProvider('gen3-test-users-cad', 'gen3-test-users-cad')
+      //       ).withEnv(BuildEnv.test.aws),
+      //   stageProps: {
+      //     pre: [
+      //       new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
+      //           'manual-approval',
+      //       ),
+      //     ],
+      //   },
+      // })
+      // .stage({
+      //   id: "uat",
+      //   stackBuilder: blueprint
+      //     .clone(region)
+      //     .name(`${clusterName}-${BuildEnv.uat.name}`)
+      //     .addOns(
+      //       ...clusterConfig.uatClusterAddons(
+      //         `${clusterName}-${BuildEnv.uat.name}`
+      //       )
+      //     )
+      //     .teams(...uatTeams)
+      //     .clusterProvider(
+      //       clusterConfig.uatClusterProvider(
+      //         `${clusterName}-${BuildEnv.uat.name}`
+      //       )
+      //     )
+      //     .resourceProvider(
+      //       blueprints.GlobalResources.Vpc,
+      //       new blueprints.VpcProvider(uatVpcId)
+      //     )
+      //     .withEnv(BuildEnv.uat.aws),
+      //   stageProps: {
+      //     pre: [
+      //       new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
+      //         "manual-approval"
+      //       ),
+      //     ],
+      //   },
+      // })
+      .stage({
+        id: "prod",
+        stackBuilder: blueprint
+          .clone(region)
+          .name(`${clusterName}-${BuildEnv.prod.name}`)
+          .addOns(
+            ...clusterConfig.prodClusterAddons(
+              `${clusterName}-${BuildEnv.prod.name}`
+            )
+          )
+          .teams(...prodTeams)
+          .clusterProvider(
+            clusterConfig.prodClusterProvider(
+              `${clusterName}-${BuildEnv.prod.name}`
+            )
+          )
+          .resourceProvider(
+            blueprints.GlobalResources.Vpc,
+            new blueprints.VpcProvider(prodVpcId)
+          )
+          .withEnv(BuildEnv.prod.aws),
+        stageProps: {
+          pre: [
+            new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
+              "manual-approval"
+            ),
+          ],
+        },
+      })
+      .build(scope, id + "-stack", { env: BuildEnv.tools.aws });
   }
 
 }
