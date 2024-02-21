@@ -152,7 +152,7 @@ export const prodBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
       },
     },
     helm: {
-      valueFiles: ["values.yaml", "gen3-values.yaml"],
+      valueFiles: ["values.yaml", "gen3-values.yaml", "secrets-values.yaml"],
     },
     configs: {
       cm: {
