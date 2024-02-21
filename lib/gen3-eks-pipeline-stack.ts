@@ -112,20 +112,20 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         targetRevision: EksPipelineRepo.tagRevision,
       })
       .enableCrossAccountKeys()
-      .stage({
-        id: "dev",
-        stackBuilder: blueprint
-          .clone(region)
-          .name(`${clusterName}-${BuildEnv.dev.name}`)
-          .addOns(...clusterConfig.devClusterAddons(clusterName))
-          .teams(...devTeams)
-          .clusterProvider(clusterConfig.devClusterProvider(clusterName))
-          .resourceProvider(
-            blueprints.GlobalResources.Vpc,
-            new blueprints.VpcProvider(devVpcId)
-          )
-          .withEnv(BuildEnv.tools.aws),
-      })
+      // .stage({
+      //   id: "dev",
+      //   stackBuilder: blueprint
+      //     .clone(region)
+      //     .name(`${clusterName}-${BuildEnv.dev.name}`)
+      //     .addOns(...clusterConfig.devClusterAddons(clusterName))
+      //     .teams(...devTeams)
+      //     .clusterProvider(clusterConfig.devClusterProvider(clusterName))
+      //     .resourceProvider(
+      //       blueprints.GlobalResources.Vpc,
+      //       new blueprints.VpcProvider(devVpcId)
+      //     )
+      //     .withEnv(BuildEnv.tools.aws),
+      // })
       // .stage({
       //   id: 'test',
       //   stackBuilder: blueprint
