@@ -108,7 +108,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       .repository({
         repoUrl: EksPipelineRepo.repoUrl,
         codeStarConnectionArn:
-          "arn:aws:codestar-connections:ap-southeast-2:690491147947:connection/ce767af4-597d-42ce-8920-c2e9011a1616",
+          "arn:aws:codestar-connections:ap-southeast-2:891377157203:connection/f7b5ea72-f57f-4c3b-a00a-fda36a5719b1",
         targetRevision: EksPipelineRepo.tagRevision,
       })
       .enableCrossAccountKeys()
