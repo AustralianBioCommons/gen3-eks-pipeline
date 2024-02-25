@@ -349,25 +349,26 @@ export function testClusterProvider(clusterName: string) {
 export function uatClusterProvider(clusterName: string) {
     const version = KubernetesVersion.V1_28;
     return new blueprints.GenericClusterProvider({
-        version: version,
-        clusterName: clusterName,
-        managedNodeGroups: [
-            {
-                id: 'mng1',
-                minSize: 1,
-                maxSize: 4,
-                desiredSize: 3,
-                instanceTypes: [new ec2.InstanceType('m5.large')],
-                amiType: NodegroupAmiType.AL2_X86_64,
-                nodeGroupCapacityType: CapacityType.ON_DEMAND,
-                amiReleaseVersion: '1.28.5-20240110',
-                tags: {
-                    Name: 'GEN3 Cluster',
-                    Type: 'ACDC',
-                    ENV: 'uat'
-                },
-            },
-        ],
+      version: version,
+      clusterName: clusterName,
+      endpointAccess: EndpointAccess.PRIVATE,
+      managedNodeGroups: [
+        {
+          id: "mng1",
+          minSize: 1,
+          maxSize: 4,
+          desiredSize: 3,
+          instanceTypes: [new ec2.InstanceType("m5.large")],
+          amiType: NodegroupAmiType.AL2_X86_64,
+          nodeGroupCapacityType: CapacityType.ON_DEMAND,
+          amiReleaseVersion: "1.28.5-20240110",
+          tags: {
+            Name: "GEN3 Cluster",
+            Type: "ACDC",
+            ENV: "uat",
+          },
+        },
+      ],
     });
 }
 
@@ -376,6 +377,7 @@ export function prodClusterProvider(clusterName: string) {
   return new blueprints.GenericClusterProvider({
     version: version,
     clusterName: clusterName,
+    endpointAccess: EndpointAccess.PRIVATE,
     managedNodeGroups: [
       {
         id: "mng1",
