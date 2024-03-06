@@ -351,7 +351,6 @@ export function uatClusterProvider(clusterName: string) {
     return new blueprints.GenericClusterProvider({
         version: version,
         clusterName: clusterName,
-        
         managedNodeGroups: [
             {
                 id: 'mng1',
@@ -380,25 +379,10 @@ export function prodClusterProvider(clusterName: string) {
     endpointAccess: EndpointAccess.PRIVATE,
     managedNodeGroups: [
       {
-        id: "mng3",
-        minSize: 1,
+        id: "mng2",
+        minSize: 2,
         maxSize: 4,
         desiredSize: 3,
-        instanceTypes: [new ec2.InstanceType("m5.large")],
-        amiType: NodegroupAmiType.AL2_X86_64,
-        nodeGroupCapacityType: CapacityType.ON_DEMAND,
-        amiReleaseVersion: "1.28.5-20240110",
-        tags: {
-          Name: "GEN3 Cluster",
-          Type: "ACDC",
-          ENV: "prod",
-        },
-      },
-      {
-        id: "mng2",
-        minSize: 1,
-        maxSize: 4,
-        desiredSize: 2,
         instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
         amiType: NodegroupAmiType.AL2_X86_64,
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
