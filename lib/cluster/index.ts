@@ -380,9 +380,9 @@ export function prodClusterProvider(clusterName: string) {
     endpointAccess: EndpointAccess.PRIVATE,
     managedNodeGroups: [
       {
-        id: "mng1",
+        id: "mng3",
         minSize: 1,
-        maxSize: 3,
+        maxSize: 4,
         desiredSize: 3,
         instanceTypes: [new ec2.InstanceType("m5.large")],
         amiType: NodegroupAmiType.AL2_X86_64,
