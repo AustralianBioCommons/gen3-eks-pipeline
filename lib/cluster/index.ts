@@ -402,7 +402,7 @@ export function prodClusterProvider(clusterName: string) {
         instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
         amiType: NodegroupAmiType.AL2_X86_64,
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
-        amiReleaseVersion: "1.28.5-20240110",
+        amiReleaseVersion: "1.28.5-20240227",
         tags: {
           Name: "GEN3 Cluster",
           Type: "ACDC",
