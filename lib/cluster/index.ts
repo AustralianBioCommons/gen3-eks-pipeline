@@ -398,7 +398,7 @@ export function prodClusterProvider(clusterName: string) {
         id: "mng2",
         minSize: 1,
         maxSize: 4,
-        desiredSize: 3,
+        desiredSize: 2,
         instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
         amiType: NodegroupAmiType.AL2_X86_64,
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
