@@ -77,7 +77,6 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       new blueprints.addons.MetricsServerAddOn(),
       new blueprints.addons.ClusterAutoScalerAddOn(),
       new blueprints.addons.SecretsStoreAddOn(),
-      new blueprints.addons.NginxAddOn(),
       new blueprints.addons.SSMAgentAddOn(),
       new blueprints.addons.CoreDnsAddOn(),
       new blueprints.addons.KubeProxyAddOn(),
