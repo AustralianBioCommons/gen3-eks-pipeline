@@ -64,7 +64,7 @@ export const devBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
     values: {
         server: {
             service: {
-                type: "LoadBalancer",
+                type: "NodePort",
             },
         },
         configs: {
@@ -95,7 +95,7 @@ export const testBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
     values: {
         server: {
             service: {
-                type: "LoadBalancer",
+                type: "NodePort",
             },
         },
         helm: {
@@ -148,7 +148,7 @@ export const prodBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
   values: {
     server: {
       service: {
-        type: "LoadBalancer",
+        type: "NodePort",
       },
     },
     helm: {
