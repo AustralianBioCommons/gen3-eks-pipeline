@@ -147,35 +147,35 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       //     ],
       //   },
       // })
-      .stage({
-        id: "uat",
-        stackBuilder: blueprint
-          .clone(region)
-          .name(`${clusterName}-${BuildEnv.uat.name}`)
-          .addOns(
-            ...clusterConfig.uatClusterAddons(
-              `${clusterName}-${BuildEnv.uat.name}`
-            )
-          )
-          .teams(...uatTeams)
-          .clusterProvider(
-            clusterConfig.uatClusterProvider(
-              `${clusterName}-${BuildEnv.uat.name}`
-            )
-          )
-          .resourceProvider(
-            blueprints.GlobalResources.Vpc,
-            new blueprints.VpcProvider(uatVpcId)
-          )
-          .withEnv(BuildEnv.uat.aws),
-        stageProps: {
-          pre: [
-            new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
-              "manual-approval"
-            ),
-          ],
-        },
-      })
+      // .stage({
+      //   id: "uat",
+      //   stackBuilder: blueprint
+      //     .clone(region)
+      //     .name(`${clusterName}-${BuildEnv.uat.name}`)
+      //     .addOns(
+      //       ...clusterConfig.uatClusterAddons(
+      //         `${clusterName}-${BuildEnv.uat.name}`
+      //       )
+      //     )
+      //     .teams(...uatTeams)
+      //     .clusterProvider(
+      //       clusterConfig.uatClusterProvider(
+      //         `${clusterName}-${BuildEnv.uat.name}`
+      //       )
+      //     )
+      //     .resourceProvider(
+      //       blueprints.GlobalResources.Vpc,
+      //       new blueprints.VpcProvider(uatVpcId)
+      //     )
+      //     .withEnv(BuildEnv.uat.aws),
+      //   stageProps: {
+      //     pre: [
+      //       new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
+      //         "manual-approval"
+      //       ),
+      //     ],
+      //   },
+      // })
       .stage({
         id: "prod",
         stackBuilder: blueprint
