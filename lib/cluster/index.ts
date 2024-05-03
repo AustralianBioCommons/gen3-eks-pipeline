@@ -8,8 +8,7 @@ import {
     NodegroupAmiType,
 } from 'aws-cdk-lib/aws-eks';
 
-const APP_REPO = 'git@github.com:AustralianBioCommons/gen3-helm.git';
-const WORKLOAD_REPO = 'git@github.com:AustralianBioCommons/gen3-workloads.git';
+const WORKLOAD_REPO = 'https://github.com/AustralianBioCommons/gen3-workloads.git';
 
 const bootstrapRepo: blueprints.ApplicationRepository = {
     repoUrl: WORKLOAD_REPO,
