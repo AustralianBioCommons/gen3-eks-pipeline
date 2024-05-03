@@ -108,34 +108,31 @@ export const testBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
 });
 
 export const uatBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
-    adminPasswordSecretName: 'cad-argocdAdmin-test',
-    name: 'uatCluster',
-    bootstrapRepo: {
-        ...uatBootstrapRepo,
-        path: "environments/uat",
+  adminPasswordSecretName: "cad-argocdAdmin-test",
+  name: "uatCluster",
+  bootstrapRepo: {
+    ...uatBootstrapRepo,
+    path: "environments/uat",
+  },
+  values: {
+    server: {
+      service: {
+        type: "NodePort",
+      },
     },
-    values: {
-        server: {
-            service: {
-                type: "LoadBalancer",
-            },
-        },
-        helm: {
-            valueFiles: [
-                "values.yaml",
-                "gen3-values.yaml"
-            ]
-        },
-        configs: {
-            cm: {
-                "accounts.tester": "login",
-                "admin.enabled": "true"
-            },
-            rbac: {
-                'policy.cad.csv': "g,tester, role:readonly"
-            }
-        }
+    helm: {
+      valueFiles: ["values.yaml", "gen3-values.yaml"],
     },
+    configs: {
+      cm: {
+        "accounts.tester": "login",
+        "admin.enabled": "true",
+      },
+      rbac: {
+        "policy.cad.csv": "g,tester, role:readonly",
+      },
+    },
+  },
 });
 
 export const prodBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
@@ -349,25 +346,26 @@ export function testClusterProvider(clusterName: string) {
 export function uatClusterProvider(clusterName: string) {
     const version = KubernetesVersion.V1_28;
     return new blueprints.GenericClusterProvider({
-        version: version,
-        clusterName: clusterName,
-        managedNodeGroups: [
-            {
-                id: 'mng1',
-                minSize: 1,
-                maxSize: 4,
-                desiredSize: 3,
-                instanceTypes: [new ec2.InstanceType('m5.large')],
-                amiType: NodegroupAmiType.AL2_X86_64,
-                nodeGroupCapacityType: CapacityType.ON_DEMAND,
-                amiReleaseVersion: '1.28.5-20240110',
-                tags: {
-                    Name: 'GEN3 Cluster',
-                    Type: 'ACDC',
-                    ENV: 'uat'
-                },
-            },
-        ],
+      version: version,
+      clusterName: clusterName,
+      managedNodeGroups: [
+        {
+          id: "mng1",
+          minSize: 1,
+          maxSize: 3,
+          desiredSize: 2,
+          diskSize: 100,
+          instanceTypes: [new ec2.InstanceType("m5.4xlarge")],
+          amiType: NodegroupAmiType.AL2_X86_64,
+          nodeGroupCapacityType: CapacityType.ON_DEMAND,
+          amiReleaseVersion: "1.28.5-20240227",
+          tags: {
+            Name: "GEN3 Cluster",
+            Type: "ACDC",
+            ENV: "uat",
+          },
+        },
+      ],
     });
 }
 
