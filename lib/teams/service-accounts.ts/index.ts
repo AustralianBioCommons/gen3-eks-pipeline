@@ -5,7 +5,7 @@ import { BuildEnvObj, Project } from "../../environments";
 export class ExternalSecretsSa extends ApplicationTeam {
   constructor(buildEnv: BuildEnvObj) {
     super({
-      name: 'external-secrets-sa',
+      name: 'external-secrets',
       namespace: Project,
     });
   }
