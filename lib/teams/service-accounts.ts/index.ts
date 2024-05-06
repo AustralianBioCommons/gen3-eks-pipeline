@@ -1,11 +1,11 @@
 import { ApplicationTeam, ClusterInfo } from "@aws-quickstart/eks-blueprints";
 import * as iam from "aws-cdk-lib/aws-iam";
-import { BuildEnvObj } from "../../environments";
+import { BuildEnv, BuildEnvObj, Project } from "../../environments";
 
 export class ExternalSecretsSa extends ApplicationTeam {
   constructor(buildEnv: BuildEnvObj) {
     super({
-      name: "external-secrets",
+      name: Project,
       namespace: 'external-secrets-sa',
     });
   }
