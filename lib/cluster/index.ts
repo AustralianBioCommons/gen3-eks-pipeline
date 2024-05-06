@@ -39,7 +39,6 @@ const prodBootstrapRepo: blueprints.ApplicationRepository = {
 
 export const uatExternalSecretAddon = new blueprints.addons.ExternalsSecretsAddOn({
   values: {
-    namespace: "cad",
     crds: {
       createClusterSecretStore: false,
     },

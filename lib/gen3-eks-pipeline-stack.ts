@@ -7,6 +7,7 @@ import {BuildEnv, EksPipelineRepo, Project } from "./environments";
 import *  as clusterConfig from  './cluster'
 import {TeamPlatform} from "./teams";
 import {buildPolicyStatements} from "./iam";
+import { ExternalSecretsSa } from './teams/service-accounts.ts';
 
 
 export interface Gen3EksPipelineStackProps {
@@ -44,6 +45,8 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     const prodTeams: Array<blueprints.Team> = [
       new TeamPlatform(BuildEnv.prod),
     ];
+
+    const externalSecretSa: Array<blueprints.Team> = [new ExternalSecretsSa(BuildEnv.uat)];
     const account = BuildEnv.tools.aws.account;
     const region = BuildEnv.tools.aws.region;
 
@@ -114,7 +117,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               `${clusterName}-${BuildEnv.uat.name}`
             )
           )
-          .teams(...uatTeams)
+          .teams(...uatTeams,...externalSecretSa)
           .clusterProvider(
             clusterConfig.uatClusterProvider(
               `${clusterName}-${BuildEnv.uat.name}`
