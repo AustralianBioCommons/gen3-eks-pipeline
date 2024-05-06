@@ -37,6 +37,23 @@ const prodBootstrapRepo: blueprints.ApplicationRepository = {
   targetRevision: "refactor",
 };
 
+export const uatExternalSecretAddon = new blueprints.addons.ExternalsSecretsAddOn({
+  values: {
+    namespace: "cad",
+    crds: {
+      createClusterSecretStore: false,
+    },
+  },
+});
+
+export const prodExternalSecretAddon =
+  new blueprints.addons.ExternalsSecretsAddOn({
+    values: {
+      crds: {
+        createClusterSecretStore: true,
+      },
+    },
+  });
 
 
 export const sandboxBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
@@ -203,15 +220,16 @@ export function testClusterAddons(clusterName: string) {
 export function uatClusterAddons(clusterName: string) {
 
     const addOns: Array<blueprints.ClusterAddOn> = [
-        // Add additional addons here
-        new blueprints.addons.CloudWatchLogsAddon({
-            namespace: 'aws-for-fluent-bit',
-            createNamespace: true,
-            serviceAccountName: 'aws-fluent-bit-for-cw-sa',
-            logGroupPrefix: `/aws/eks/sandbox-${clusterName}`,
-            logRetentionDays: 90,
-        }),
-        uatBootstrapArgoCd,
+      // Add additional addons here
+      new blueprints.addons.CloudWatchLogsAddon({
+        namespace: "aws-for-fluent-bit",
+        createNamespace: true,
+        serviceAccountName: "aws-fluent-bit-for-cw-sa",
+        logGroupPrefix: `/aws/eks/sandbox-${clusterName}`,
+        logRetentionDays: 90,
+      }),
+      uatExternalSecretAddon,
+      uatBootstrapArgoCd,
     ];
 
     return addOns;
@@ -227,7 +245,9 @@ export function prodClusterAddons(clusterName: string) {
       logGroupPrefix: `/aws/eks/prod-${clusterName}`,
       logRetentionDays: 90,
     }),
-    prodBootstrapArgoCd,
+    prodExternalSecretAddon,
+    prodBootstrapArgoCd
+    
   ];
 
   return addOns;
