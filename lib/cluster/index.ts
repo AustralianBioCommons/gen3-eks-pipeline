@@ -394,21 +394,21 @@ export function prodClusterProvider(clusterName: string) {
     clusterName: clusterName,
     endpointAccess: EndpointAccess.PRIVATE,
     managedNodeGroups: [
-      {
-        id: "mng2",
-        minSize: 3,
-        maxSize: 5,
-        desiredSize: 3,
-        instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
-        amiType: NodegroupAmiType.AL2_X86_64,
-        nodeGroupCapacityType: CapacityType.ON_DEMAND,
-        amiReleaseVersion: "1.28.5-20240227",
-        tags: {
-          Name: "GEN3 Cluster",
-          Type: "ACDC",
-          ENV: "prod",
-        },
-      },
+      // {
+      //   id: "mng2",
+      //   minSize: 0,
+      //   maxSize: 0,
+      //   desiredSize: 0,
+      //   instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
+      //   amiType: NodegroupAmiType.AL2_X86_64,
+      //   nodeGroupCapacityType: CapacityType.ON_DEMAND,
+      //   amiReleaseVersion: "1.28.5-20240227",
+      //   tags: {
+      //     Name: "GEN3 Cluster",
+      //     Type: "ACDC",
+      //     ENV: "prod",
+      //   },
+      // },
       {
         id: "mng3",
         minSize: 2,
