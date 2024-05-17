@@ -395,7 +395,7 @@ export function prodClusterProvider(clusterName: string) {
     endpointAccess: EndpointAccess.PRIVATE,
     managedNodeGroups: [
       {
-        id: "mng2",
+        id: "mng1",
         minSize: 2,
         maxSize: 3,
         desiredSize: 2,
