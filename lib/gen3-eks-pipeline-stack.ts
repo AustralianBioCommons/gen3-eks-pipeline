@@ -47,6 +47,9 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     ];
 
     const externalSecretSa: Array<blueprints.Team> = [new ExternalSecretsSa(BuildEnv.uat)];
+    const prodExternalSecretSa: Array<blueprints.Team> = [
+      new ExternalSecretsSa(BuildEnv.prod),
+    ];
     const account = BuildEnv.tools.aws.account;
     const region = BuildEnv.tools.aws.region;
 
@@ -146,7 +149,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               `${clusterName}-${BuildEnv.prod.name}`
             )
           )
-          .teams(...prodTeams)
+          .teams(...prodTeams,...prodExternalSecretSa)
           .clusterProvider(
             clusterConfig.prodClusterProvider(
               `${clusterName}-${BuildEnv.prod.name}`
