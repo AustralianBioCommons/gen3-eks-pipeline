@@ -123,7 +123,7 @@ export const testBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
 });
 
 export const uatBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
-  version: "6.11.1",
+  //version: "6.11.1",
   adminPasswordSecretName: "cad-argocdAdmin-uat",
   name: "uatGen3Cluster",
   bootstrapRepo: {
@@ -152,7 +152,7 @@ export const uatBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
 });
 
 export const prodBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
-  version: "6.11.1",
+  //version: "6.11.1",
   adminPasswordSecretName: "cad-argocdAdmin-prod",
   name: "prodGen3Cluster",
   bootstrapRepo: {
