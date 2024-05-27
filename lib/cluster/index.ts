@@ -25,15 +25,15 @@ const devBootstrapRepo: blueprints.ApplicationRepository = {
 };
 const uatBootstrapRepo: blueprints.ApplicationRepository = {
   repoUrl: WORKLOAD_REPO,
-  credentialsSecretName: "gen3-argocd",
-  credentialsType: "TOKEN",
+  credentialsSecretName: "github-ssh-key",
+  credentialsType: "SSH",
   targetRevision: "refactor",
 };
 
 const prodBootstrapRepo: blueprints.ApplicationRepository = {
   repoUrl: WORKLOAD_REPO,
-  credentialsSecretName: "gen3-argocd",
-  credentialsType: "TOKEN",
+  credentialsSecretName: "github-ssh-key",
+  credentialsType: "SSH",
   targetRevision: "refactor",
 };
 
