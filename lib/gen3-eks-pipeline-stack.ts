@@ -111,7 +111,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         id: "uat",
         stackBuilder: blueprint
           .clone(region)
-          .name(`${clusterName}-${BuildEnv.uat.name}`)
+          .name(`${clusterName}-${BuildEnv.uat.name}-v2`)
           .addOns(
             ...clusterConfig.uatClusterAddons(
               `${clusterName}-${BuildEnv.uat.name}`
