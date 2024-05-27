@@ -170,7 +170,6 @@ export const prodBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
     },
     configs: {
       cm: {
-        "accounts.tester": "login",
         "admin.enabled": "true",
       },
       rbac: {
