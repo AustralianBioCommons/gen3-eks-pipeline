@@ -370,7 +370,7 @@ export function uatClusterProvider(clusterName: string) {
       clusterName: clusterName,
       managedNodeGroups: [
         {
-          id: "mng1",
+          id: "mng2",
           minSize: 1,
           maxSize: 2,
           desiredSize: 1,
