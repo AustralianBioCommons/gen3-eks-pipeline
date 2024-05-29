@@ -372,10 +372,10 @@ export function uatClusterProvider(clusterName: string) {
         {
           id: "mng1",
           minSize: 1,
-          maxSize: 3,
-          desiredSize: 2,
+          maxSize: 2,
+          desiredSize: 1,
           diskSize: 100,
-          instanceTypes: [new ec2.InstanceType("m5.4xlarge")],
+          instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
           amiType: NodegroupAmiType.AL2_X86_64,
           nodeGroupCapacityType: CapacityType.ON_DEMAND,
           amiReleaseVersion: "1.28.5-20240227",
