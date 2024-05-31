@@ -32,9 +32,9 @@ const uatBootstrapRepo: blueprints.ApplicationRepository = {
 
 const prodBootstrapRepo: blueprints.ApplicationRepository = {
   repoUrl: WORKLOAD_REPO,
-  credentialsSecretName: "github-ssh-key",
+  credentialsSecretName: "gen3-argocd",
   credentialsType: "SSH",
-  targetRevision: "refactor",
+  targetRevision: "main",
 };
 
 export const uatExternalSecretAddon = new blueprints.addons.ExternalsSecretsAddOn({
