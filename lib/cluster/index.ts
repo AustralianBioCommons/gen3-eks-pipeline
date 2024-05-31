@@ -33,7 +33,7 @@ const uatBootstrapRepo: blueprints.ApplicationRepository = {
 const prodBootstrapRepo: blueprints.ApplicationRepository = {
   repoUrl: WORKLOAD_REPO,
   credentialsSecretName: "gen3-argocd",
-  credentialsType: "SSH",
+  credentialsType: "TOKEN",
   targetRevision: "main",
 };
 
