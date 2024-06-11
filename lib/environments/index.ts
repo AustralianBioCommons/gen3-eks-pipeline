@@ -85,7 +85,7 @@ export const BuildEnv = {
   uat: {
     name: "uat",
     hostname: "data.test.biocommons.org.au",
-    vpcId: "vpc-02fb65385f8fe72bd",
+    vpcId: "vpc-0fa38629c27c164c9",
     aws: {
       account: "232870232581",
       region: "ap-southeast-2",
