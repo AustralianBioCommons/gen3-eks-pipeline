@@ -27,7 +27,7 @@ const uatBootstrapRepo: blueprints.ApplicationRepository = {
   repoUrl: WORKLOAD_REPO,
   credentialsSecretName: "gen3-argocd",
   credentialsType: "TOKEN",
-  targetRevision: "refactor",
+  targetRevision: "testing",
 };
 
 const prodBootstrapRepo: blueprints.ApplicationRepository = {
@@ -372,7 +372,7 @@ export function uatClusterProvider(clusterName: string) {
         {
           id: "mng2",
           minSize: 1,
-          maxSize: 2,
+          maxSize: 1,
           desiredSize: 1,
           diskSize: 100,
           instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
