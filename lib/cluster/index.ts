@@ -168,15 +168,6 @@ export const prodBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
     helm: {
       valueFiles: ["values.yaml", "gen3-values.yaml", "secrets-values.yaml"],
     },
-    configs: {
-      cm: {
-        "accounts.tester": "login",
-        "admin.enabled": "true",
-      },
-      rbac: {
-        "policy.cad.csv": "g,tester, role:readonly",
-      },
-    },
   },
 });
 
