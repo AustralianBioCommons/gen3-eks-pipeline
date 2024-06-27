@@ -77,7 +77,9 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         );
 
     const addOns: Array<blueprints.ClusterAddOn> = [
-      new blueprints.addons.AwsLoadBalancerControllerAddOn(),
+      new blueprints.addons.AwsLoadBalancerControllerAddOn({
+        enableWafv2: true
+      }),
       new blueprints.addons.CertManagerAddOn(),
       new blueprints.addons.CalicoOperatorAddOn(),
       new blueprints.addons.MetricsServerAddOn(),
