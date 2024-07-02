@@ -372,7 +372,7 @@ export function uatClusterProvider(clusterName: string) {
 }
 
 export function prodClusterProvider(clusterName: string) {
-  const version = KubernetesVersion.V1_28;
+  const version = KubernetesVersion.V1_30;
   return new blueprints.GenericClusterProvider({
     version: version,
     clusterName: clusterName,
@@ -394,22 +394,22 @@ export function prodClusterProvider(clusterName: string) {
           ENV: "prod",
         },
       },
-      // {
-      //   id: "mng3",
-      //   minSize: 2,
-      //   maxSize: 3,
-      //   desiredSize: 2,
-      //   diskSize: 100,
-      //   instanceTypes: [new ec2.InstanceType("m5.4xlarge")],
-      //   amiType: NodegroupAmiType.AL2_X86_64,
-      //   nodeGroupCapacityType: CapacityType.ON_DEMAND,
-      //   amiReleaseVersion: "1.28.5-20240227",
-      //   tags: {
-      //     Name: "GEN3 Cluster",
-      //     Type: "ACDC",
-      //     ENV: "prod",
-      //   },
-      // },
+      {
+        id: "mng-v1.30",
+        minSize: 2,
+        maxSize: 3,
+        desiredSize: 2,
+        diskSize: 100,
+        instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
+        amiType: NodegroupAmiType.AL2_X86_64,
+        nodeGroupCapacityType: CapacityType.ON_DEMAND,
+        amiReleaseVersion: "1.30.0-20240625",
+        tags: {
+          Name: "GEN3 Cluster",
+          Type: "ACDC",
+          ENV: "prod",
+        },
+      },
     ],
   });
 }
