@@ -346,7 +346,7 @@ export function testClusterProvider(clusterName: string) {
 }
 
 export function uatClusterProvider(clusterName: string) {
-    const version = KubernetesVersion.V1_28;
+    const version = KubernetesVersion.V1_30;
     return new blueprints.GenericClusterProvider({
       version: version,
       clusterName: clusterName,
@@ -360,7 +360,7 @@ export function uatClusterProvider(clusterName: string) {
           instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
           amiType: NodegroupAmiType.AL2_X86_64,
           nodeGroupCapacityType: CapacityType.ON_DEMAND,
-          amiReleaseVersion: "1.28.5-20240227",
+          amiReleaseVersion: "1.30.0-20240703",
           tags: {
             Name: "GEN3 Cluster",
             Type: "ACDC",
