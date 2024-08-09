@@ -100,6 +100,25 @@ export const BuildEnv = {
     },
     platformRoleName: "AWSReservedSSO_AWSAdministratorAccess_e857afb345dbe57a",
   },
+  staging: {
+    name: "staging",
+    hostname: "cad.staging.biocommons.org.au",
+    vpcId: "vpc-092e3bb58de590065",
+    aws: {
+      account: "026090528544",
+      region: "ap-southeast-2",
+    },
+    rds: {
+      port: 5432,
+      engineVersion: rds.AuroraPostgresEngineVersion.VER_13_9,
+      serverlessV2MinCapacity: 0.5,
+      serverlessV2MaxCapacity: 1,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      instances: ["master"],
+    },
+    platformRoleName:
+      "AWSReservedSSO_AWSAdministratorAccess_3e5796e186c6a821",
+  },
   prod: {
     name: "prod",
     hostname: "acdc.baker.edu.au",

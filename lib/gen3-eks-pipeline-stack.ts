@@ -26,6 +26,8 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     const testVpcId = BuildEnv.test.vpcId;
     // const prodVpcId = await getVpcId(BuildEnv.prod);
     const uatVpcId = BuildEnv.uat.vpcId;
+    
+    const stagingVpcId = BuildEnv.staging.vpcId;
 
     const prodVpcId = BuildEnv.prod.vpcId;
 
@@ -42,11 +44,19 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     const uatTeams: Array<blueprints.Team> = [
       new TeamPlatform(BuildEnv.uat),
     ];
+
+    const stagingTeams: Array<blueprints.Team> = [
+      new TeamPlatform(BuildEnv.staging),
+    ];
     const prodTeams: Array<blueprints.Team> = [
       new TeamPlatform(BuildEnv.prod),
     ];
 
     const externalSecretSa: Array<blueprints.Team> = [new ExternalSecretsSa(BuildEnv.uat)];
+
+    const stagingExternalSecretSa: Array<blueprints.Team> = [
+          new ExternalSecretsSa(BuildEnv.staging),
+        ];
     const prodExternalSecretSa: Array<blueprints.Team> = [
       new ExternalSecretsSa(BuildEnv.prod),
     ];
@@ -122,7 +132,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               `${clusterName}-${BuildEnv.uat.name}`
             )
           )
-          .teams(...uatTeams,...externalSecretSa)
+          .teams(...uatTeams, ...externalSecretSa)
           .clusterProvider(
             clusterConfig.uatClusterProvider(
               `${clusterName}-${BuildEnv.uat.name}`
@@ -142,6 +152,35 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         },
       })
       .stage({
+        id: "staging",
+        stackBuilder: blueprint
+          .clone(region)
+          .name(`${clusterName}-${BuildEnv.staging.name}`)
+          .addOns(
+            ...clusterConfig.stagingClusterAddons(
+              `${clusterName}-${BuildEnv.staging.name}`
+            )
+          )
+          .teams(...stagingTeams, ...stagingExternalSecretSa)
+          .clusterProvider(
+            clusterConfig.stagingClusterProvider(
+              `${clusterName}-${BuildEnv.staging.name}`
+            )
+          )
+          .resourceProvider(
+            blueprints.GlobalResources.Vpc,
+            new blueprints.VpcProvider(stagingVpcId)
+          )
+          .withEnv(BuildEnv.staging.aws),
+        stageProps: {
+          pre: [
+            new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
+              "manual-approval"
+            ),
+          ],
+        },
+      })
+      .stage({
         id: "prod",
         stackBuilder: blueprint
           .clone(region)
@@ -151,7 +190,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
               `${clusterName}-${BuildEnv.prod.name}`
             )
           )
-          .teams(...prodTeams,...prodExternalSecretSa)
+          .teams(...prodTeams, ...prodExternalSecretSa)
           .clusterProvider(
             clusterConfig.prodClusterProvider(
               `${clusterName}-${BuildEnv.prod.name}`

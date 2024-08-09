@@ -30,6 +30,13 @@ const uatBootstrapRepo: blueprints.ApplicationRepository = {
   targetRevision: "testing",
 };
 
+const stagingBootstrapRepo: blueprints.ApplicationRepository = {
+  repoUrl: WORKLOAD_REPO,
+  credentialsSecretName: "gen3-argocd",
+  credentialsType: "TOKEN",
+  targetRevision: "main",
+};
+
 const prodBootstrapRepo: blueprints.ApplicationRepository = {
   repoUrl: WORKLOAD_REPO,
   credentialsSecretName: "gen3-argocd",
@@ -44,6 +51,15 @@ export const uatExternalSecretAddon = new blueprints.addons.ExternalsSecretsAddO
     },
   },
 });
+
+export const stagingExternalSecretAddon =
+  new blueprints.addons.ExternalsSecretsAddOn({
+    values: {
+      crds: {
+        createClusterSecretStore: true,
+      },
+    },
+  });
 
 export const prodExternalSecretAddon =
   new blueprints.addons.ExternalsSecretsAddOn({
@@ -142,8 +158,26 @@ export const uatBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
   },
 });
 
+export const stagingBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
+  adminPasswordSecretName: "cad-argocdAdmin-staging",
+  name: "stagingCluster",
+  bootstrapRepo: {
+    ...stagingBootstrapRepo,
+    path: "environments/staging",
+  },
+  values: {
+    server: {
+      service: {
+        type: "NodePort",
+      },
+    },
+    helm: {
+      valueFiles: ["values.yaml", "gen3-values.yaml"],
+    },
+  },
+});
+
 export const prodBootstrapArgoCd = new blueprints.addons.ArgoCDAddOn({
-  //version: "6.11.1",
   adminPasswordSecretName: "cad-argocdAdmin-prod",
   name: "prodCluster",
   bootstrapRepo: {
@@ -216,6 +250,23 @@ export function uatClusterAddons(clusterName: string) {
     ];
 
     return addOns;
+}
+
+export function stagingClusterAddons(clusterName: string) {
+  const addOns: Array<blueprints.ClusterAddOn> = [
+    // Add additional addons here
+    new blueprints.addons.CloudWatchLogsAddon({
+      namespace: "aws-for-fluent-bit",
+      createNamespace: true,
+      serviceAccountName: "aws-fluent-bit-for-cw-sa",
+      logGroupPrefix: `/aws/eks/prod-${clusterName}`,
+      logRetentionDays: 90,
+    }),
+    stagingExternalSecretAddon,
+    stagingBootstrapArgoCd,
+  ];
+
+  return addOns;
 }
 
 export function prodClusterAddons(clusterName: string) {
@@ -369,6 +420,33 @@ export function uatClusterProvider(clusterName: string) {
         },
       ],
     });
+}
+
+export function stagingClusterProvider(clusterName: string) {
+  const version = KubernetesVersion.V1_30;
+  return new blueprints.GenericClusterProvider({
+    version: version,
+    clusterName: clusterName,
+    endpointAccess: EndpointAccess.PRIVATE,
+    managedNodeGroups: [
+      {
+        id: "mng1",
+        minSize: 2,
+        maxSize: 3,
+        desiredSize: 2,
+        diskSize: 100,
+        instanceTypes: [new ec2.InstanceType("m5.2xlarge")],
+        amiType: NodegroupAmiType.AL2_X86_64,
+        nodeGroupCapacityType: CapacityType.ON_DEMAND,
+        amiReleaseVersion: "1.30.0-20240703",
+        tags: {
+          Name: "GEN3 Cluster",
+          Type: "ACDC",
+          ENV: "prod",
+        },
+      },
+    ],
+  });
 }
 
 export function prodClusterProvider(clusterName: string) {
