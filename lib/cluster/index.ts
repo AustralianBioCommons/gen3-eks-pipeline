@@ -403,7 +403,7 @@ export function uatClusterProvider(clusterName: string) {
       clusterName: clusterName,
       managedNodeGroups: [
         {
-          id: "mng2",
+          id: "mng3",
           minSize: 1,
           maxSize: 2,
           desiredSize: 2,
@@ -442,7 +442,7 @@ export function stagingClusterProvider(clusterName: string) {
         tags: {
           Name: "GEN3 Cluster",
           Type: "ACDC",
-          ENV: "prod",
+          ENV: "staging",
         },
       },
     ],
