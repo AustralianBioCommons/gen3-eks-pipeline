@@ -1,8 +1,8 @@
 import { PlatformTeam } from '@aws-quickstart/eks-blueprints';
-import {BuildEnvObj} from "../../environments";
+import {Gen3BuildEnv} from "../../environments";
 
 export class TeamPlatform extends PlatformTeam {
-    constructor(buildEnv: BuildEnvObj) {
+    constructor(buildEnv: Gen3BuildEnv) {
         super({
             name: "platform",
             //To do, define roles

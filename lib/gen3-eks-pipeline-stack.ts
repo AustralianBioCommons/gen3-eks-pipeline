@@ -1,13 +1,14 @@
 import * as blueprints from '@aws-quickstart/eks-blueprints';
+import { getSecretValue, validateSecret } from "@aws-quickstart/eks-blueprints/dist/utils/secrets-manager-utils";
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import * as sm from 'aws-cdk-lib/aws-secretsmanager';
-import {BuildEnv, EksPipelineRepo, Project } from "./environments";
+import {BuildEnv, EksPipelineRepo } from "./environments";
 import *  as clusterConfig from  './cluster'
 import {TeamPlatform} from "./teams";
 import {buildPolicyStatements} from "./iam";
 import { ExternalSecretsSa } from './teams/service-accounts.ts';
+
 
 
 export interface Gen3EksPipelineStackProps {
@@ -19,27 +20,22 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
   async buildAsync(scope: Construct, id: string, props: Gen3EksPipelineStackProps) {
 
-    const clusterName = id+'-'+Project;
+    const clusterName = id+'-' + props.project;
 
-    const devVpcId = BuildEnv.dev.vpcId;
-    // const sandboxVpcId = await getVpcId(BuildEnv.sandbox);
-    const testVpcId = BuildEnv.test.vpcId;
-    // const prodVpcId = await getVpcId(BuildEnv.prod);
-    const uatVpcId = BuildEnv.uat.vpcId;
+    const uatVpcId = await getSecretValue(
+      `${BuildEnv.uat.name}-vpcId`,
+      BuildEnv.uat.aws.region!
+    );
     
-    const stagingVpcId = BuildEnv.staging.vpcId;
+    const stagingVpcId = await getSecretValue(
+      `${BuildEnv.staging.name}-vpcId`,
+      BuildEnv.staging.aws.region!
+    );
 
-    const prodVpcId = BuildEnv.prod.vpcId;
-
-    const sandboxTeams: Array<blueprints.Team> = [
-      new TeamPlatform(BuildEnv.sandbox),
-    ];
-    const devTeams: Array<blueprints.Team> = [
-      new TeamPlatform(BuildEnv.dev),
-    ];
-    const testTeams: Array<blueprints.Team> = [
-      new TeamPlatform(BuildEnv.test),
-    ];
+    const prodVpcId = await getSecretValue(
+      `${BuildEnv.prod.name}-vpcId`,
+      BuildEnv.prod.aws.region!
+    );
 
     const uatTeams: Array<blueprints.Team> = [
       new TeamPlatform(BuildEnv.uat),
@@ -76,15 +72,15 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
         ]);
 
-    const serviceRole = new blueprints.CreateRoleProvider('gen3-service-role',
-        new iam.FederatedPrincipal('sts.amazonaws.com',
-            {
-              StringEquals: { 'sts:ViaService': `eks.${this.region}.amazonaws.com` },
-              'ForAnyValue:StringLike': { 'sts:ExternalId': 'E60ED68B98362E7D568EA4908070A66B' },
-            },
-            'sts:AssumeRoleWithWebIdentity'),
-        [iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')]
-        );
+    // const serviceRole = new blueprints.CreateRoleProvider('gen3-service-role',
+    //     new iam.FederatedPrincipal('sts.amazonaws.com',
+    //         {
+    //           StringEquals: { 'sts:ViaService': `eks.${this.region}.amazonaws.com` },
+    //           'ForAnyValue:StringLike': { 'sts:ExternalId': 'E60ED68B98362E7D568EA4908070A66B' },
+    //         },
+    //         'sts:AssumeRoleWithWebIdentity'),
+    //     [iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')]
+    //     );
 
     const addOns: Array<blueprints.ClusterAddOn> = [
       new blueprints.addons.AwsLoadBalancerControllerAddOn({
@@ -107,8 +103,8 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         .account(account)
         .region(region)
         .addOns(...addOns)
-        .resourceProvider(`gen3-node-role-${id}`, nodeRole)
-        .resourceProvider(`serviceRole-${id}`, serviceRole);
+        .resourceProvider(`gen3-node-role-${id}`, nodeRole);
+        // .resourceProvider(`serviceRole-${id}`, serviceRole);
 
     // @ts-ignore
     blueprints.CodePipelineStack.builder()
