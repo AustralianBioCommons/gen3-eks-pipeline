@@ -1,6 +1,6 @@
 import { ApplicationTeam, ClusterInfo } from "@aws-quickstart/eks-blueprints";
 import * as iam from "aws-cdk-lib/aws-iam";
-import { Gen3BuildEnv } from "../../environments";
+import { Gen3BuildEnv } from "../../config/environments";
 
 /**
  * ExternalSecretsSa is an application team class used to create and manage a

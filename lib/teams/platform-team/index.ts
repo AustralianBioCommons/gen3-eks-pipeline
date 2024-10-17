@@ -1,5 +1,5 @@
 import { PlatformTeam } from '@aws-quickstart/eks-blueprints';
-import {Gen3BuildEnv} from "../../environments";
+import { Gen3BuildEnv } from '../../config/environments';
 
 export class TeamPlatform extends PlatformTeam {
     constructor(buildEnv: Gen3BuildEnv) {
