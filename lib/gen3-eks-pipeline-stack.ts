@@ -1,14 +1,15 @@
 import * as blueprints from '@aws-quickstart/eks-blueprints';
+import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { getSecretValue, validateSecret } from "@aws-quickstart/eks-blueprints/dist/utils/secrets-manager-utils";
 import * as cdk from 'aws-cdk-lib';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { EksPipelineRepo, toolsRegion } from "./config/environments";
 import *  as clusterConfig from  './config/cluster'
+import { gen3ClusterProvider } from './config/cluster/cluster-provider';
 import {TeamPlatform} from "./teams";
 import {buildPolicyStatements} from "./iam";
 import { ExternalSecretsSa } from './teams/service-accounts.ts';
-
+import { IamRolesStack } from './iam-roles-stack';
 
 
 export interface Gen3EksPipelineStackProps {
@@ -17,24 +18,28 @@ export interface Gen3EksPipelineStackProps {
 }
 
 export class Gen3EksPipelineStack extends cdk.Stack {
-
-  async buildAsync(scope: Construct, id: string, props: Gen3EksPipelineStackProps) {
-
-    validateSecret("gen3-argocd", toolsRegion);
-
-    validateSecret("gen3-env-credentials", toolsRegion)
+  async buildAsync(
+    scope: Construct,
+    id: string,
+    props: Gen3EksPipelineStackProps
+  ) {
+    validateSecret("gen3-env-credentials", toolsRegion);
 
     validateSecret("code-star-connection-arn", toolsRegion);
 
-    const codeStarConnectionArn = await getSecretValue("code-star-connection-arn", toolsRegion)
-  
-    const envValues = JSON.parse(await getSecretValue("gen3-env-credentials", toolsRegion));
+    const codeStarConnectionArn = await getSecretValue(
+      "code-star-connection-arn",
+      toolsRegion
+    );
 
-    const clusterName = id+'-' + props.project;
+    const envValues = JSON.parse(
+      await getSecretValue("gen3-env-credentials", toolsRegion)
+    );
 
-    const uatTeams: Array<blueprints.Team> = [
-      new TeamPlatform(envValues.uat),
-    ];
+    // Prefix for all clusters
+    const clusterName = id + "-" + props.project;
+
+    const uatTeams: Array<blueprints.Team> = [new TeamPlatform(envValues.uat)];
 
     const stagingTeams: Array<blueprints.Team> = [
       new TeamPlatform(envValues.staging),
@@ -43,11 +48,13 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       new TeamPlatform(envValues.prod),
     ];
 
-    const externalSecretSa: Array<blueprints.Team> = [new ExternalSecretsSa(envValues.uat)];
+    const externalSecretSa: Array<blueprints.Team> = [
+      new ExternalSecretsSa(envValues.uat),
+    ];
 
     const stagingExternalSecretSa: Array<blueprints.Team> = [
-          new ExternalSecretsSa(envValues.staging),
-        ];
+      new ExternalSecretsSa(envValues.staging),
+    ];
     const prodExternalSecretSa: Array<blueprints.Team> = [
       new ExternalSecretsSa(envValues.prod),
     ];
@@ -59,28 +66,18 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     blueprints.utils.logger.settings.minLevel = 3; // info
     blueprints.utils.userLog.settings.minLevel = 2; // debug
 
-
-    const nodeRole = new blueprints.CreateRoleProvider('gen3-node-role', new iam.ServicePrincipal('ec2.amazonaws.com'),
-        [
-          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSWorkerNodePolicy'),
-          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryReadOnly'),
-          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
-        ]);
-
     const addOns: Array<blueprints.ClusterAddOn> = [
       new blueprints.addons.AwsLoadBalancerControllerAddOn({
-        enableWafv2: true
+        enableWafv2: true,
       }),
-      ...clusterConfig.commonAddons
+      ...clusterConfig.commonAddons,
     ];
 
     const blueprint = blueprints.EksBlueprint.builder()
-        .name(clusterName)
-        .account(account)
-        .region(region)
-        .addOns(...addOns)
-        .resourceProvider(`gen3-node-role-${id}`, nodeRole);
-
+      .name(clusterName)
+      .account(account)
+      .region(region)
+      .addOns(...addOns);
 
     blueprints.CodePipelineStack.builder()
       .name(`gen3-eks-${envValues.tools.name}`)
@@ -96,16 +93,15 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         id: "uat",
         stackBuilder: blueprint
           .clone(region)
-          .name(`${clusterName}-${envValues.uat.name}`)
-          .addOns(
-            ...clusterConfig.uatClusterAddons(
-              `${clusterName}-${envValues.uat.name}`
-            )
-          )
+          .name(envValues.uat.clusterName)
+          .addOns(...clusterConfig.uatClusterAddons)
           .teams(...uatTeams, ...externalSecretSa)
           .clusterProvider(
-            clusterConfig.uatClusterProvider(
-              `${clusterName}-${envValues.uat.name}`
+            gen3ClusterProvider(
+              envValues.uat.name,
+              envValues.uat.clusterName,
+              this.subnetsSelection(envValues.uat.clusterSubnets, "cluster"),
+              this.subnetsSelection(envValues.uat.nodeGroupSubnets, "nodes")
             )
           )
           .resourceProvider(
@@ -125,16 +121,18 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         id: "staging",
         stackBuilder: blueprint
           .clone(region)
-          .name(`${clusterName}-${envValues.staging.name}`)
-          .addOns(
-            ...clusterConfig.stagingClusterAddons(
-              `${clusterName}-${envValues.staging.name}`
-            )
-          )
+          .name(envValues.staging.clusterName)
+          .addOns(...clusterConfig.stagingClusterAddons)
           .teams(...stagingTeams, ...stagingExternalSecretSa)
           .clusterProvider(
-            clusterConfig.stagingClusterProvider(
-              `${clusterName}-${envValues.staging.name}`
+            gen3ClusterProvider(
+              envValues.staging.name,
+              envValues.staging.clusterName,
+              this.subnetsSelection(
+                envValues.staging.clusterSubnets,
+                "cluster"
+              ),
+              this.subnetsSelection(envValues.staging.nodeGroupSubnets, "nodes")
             )
           )
           .resourceProvider(
@@ -154,16 +152,15 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         id: "prod",
         stackBuilder: blueprint
           .clone(region)
-          .name(`${clusterName}-${envValues.prod.name}`)
-          .addOns(
-            ...clusterConfig.prodClusterAddons(
-              `${clusterName}-${envValues.prod.name}`
-            )
-          )
+          .name(envValues.prod.clusterName)
+          .addOns(...clusterConfig.prodClusterAddons)
           .teams(...prodTeams, ...prodExternalSecretSa)
           .clusterProvider(
-            clusterConfig.prodClusterProvider(
-              `${clusterName}-${envValues.prod.name}`
+            gen3ClusterProvider(
+              envValues.prod.name,
+              envValues.prod.clusterName,
+              this.subnetsSelection(envValues.prod.clusterSubnets, "cluster"),
+              this.subnetsSelection(envValues.prod.nodeGroupSubnets, "nodes")
             )
           )
           .resourceProvider(
@@ -180,7 +177,32 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         },
       })
       .build(scope, id + "-stack", { env: envValues.tools.aws });
+
+      this.addIamRoleStack(scope, envValues.uat)
+      this.addIamRoleStack(scope, envValues.staging); 
+      this.addIamRoleStack(scope, envValues.prod);  
+
   }
 
+  private subnetsSelection(subnetIds: [string], type: string) {
+    const subnetsSelection: ec2.SubnetSelection = {
+      subnets: subnetIds.map((subnetId) =>
+        ec2.Subnet.fromSubnetId(this, `Subnet-${subnetId}-${type}`, subnetId)
+      ),
+    };
+    return subnetsSelection;
+  }
+
+
+
+  private addIamRoleStack(scope: Construct, buildEnv: any) {
+    new IamRolesStack(scope, `${buildEnv.clusterName}-IamRoles`, {
+      env: buildEnv.aws,
+      buildEnv: buildEnv
+    });
+  }
+ 
 }
+
+
 

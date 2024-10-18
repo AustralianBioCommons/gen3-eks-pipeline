@@ -1,5 +1,5 @@
-export * from './gen3';
-export * as gen3 from './gen3';
+export * from './config/gen3';
+export * as gen3 from './config/gen3';
 
 export * from './config/cluster'
 export * as cluster from './config/cluster'

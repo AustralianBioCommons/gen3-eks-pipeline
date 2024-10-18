@@ -3,10 +3,10 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { Gen3BuildEnv } from "../../config/environments";
 
 /**
- * ExternalSecretsSa is an application team class used to create and manage a
+ * We use Application Team class to create ExternalSecretsSa 
  * Kubernetes service account for the 'external-secrets operator. This service account
  * is granted specific IAM permissions to interact with AWS Secrets Manager and
- * SSM Parameter Store.
+ * SSM Parameter Store. It also creates a role will appropriate permissions,
  */
 export class ExternalSecretsSa extends ApplicationTeam {
   /**
@@ -24,7 +24,7 @@ export class ExternalSecretsSa extends ApplicationTeam {
   }
 
   /**
-   * The `setupServiceAccount` method configures the service account for this application team
+   * The `setupServiceAccount` method configures the service account
    * to interact with AWS services (Secrets Manager and SSM Parameter Store).
    *
    * @param clusterInfo - Contains metadata about the EKS cluster, used to apply the service account
@@ -51,7 +51,7 @@ export class ExternalSecretsSa extends ApplicationTeam {
 
         "kms:Decrypt", 
       ],
-      resources: ["*"], // The policy allows access to all resources (this could be further restricted)
+      resources: ["*"], // The policy allows access to all secrets (this should be further restricted)
     });
 
     // Attaches the above policy to the service account, allowing it to interact with AWS Secrets Manager and SSM

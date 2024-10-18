@@ -1,6 +1,6 @@
 
 
-export enum Services {
+export enum Gen3Services {
     Arborist ='arborist',
     Audit = 'audit',
     Fence = 'fence',
@@ -11,5 +11,3 @@ export enum Services {
     Sheepdog = 'sheepdog',
     WTS = 'wts'
 }
-
-
