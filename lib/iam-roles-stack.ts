@@ -59,7 +59,16 @@ export class IamRolesStack extends cdk.Stack {
     // Define a Lambda function that acts as a custom resource provider
     const providerLambda = new lambda.Function(this, "FetchOidcFunction", {
       runtime: lambda.Runtime.NODEJS_20_X,
-      code: lambda.Code.fromAsset("lib/lambda/oidc-resource-provider"),
+      code: lambda.Code.fromAsset("lib/lambda/oidc-resource-provider", {
+        bundling: {
+          image: lambda.Runtime.NODEJS_20_X.bundlingImage,
+          command: [
+            "bash",
+            "-c",
+            ["npm install", "cp -r ./src/. /asset-output"].join(" && "),
+          ],
+        },
+      }),
       handler: "index.handler",
       environment: {
         CLUSTER_NAME: clusterName, // Pass the cluster name as environment variable
@@ -163,10 +172,19 @@ export class IamRolesStack extends cdk.Stack {
     // Define a Lambda function to handle IAM role updates when the configuration changes
     const updateLambda = new lambda.Function(this, "UpdateLambdaFunction", {
       runtime: lambda.Runtime.NODEJS_20_X,
-      code: lambda.Code.fromAsset("lib/lambda/iam-roles"), // Path to the Lambda code
+      code: lambda.Code.fromAsset("lib/lambda/iam-roles", {
+        bundling: {
+          image: lambda.Runtime.NODEJS_14_X.bundlingImage,
+          command: [
+            "bash",
+            "-c",
+            ["npm install", "cp -r ./src/. /asset-output"].join(" && "),
+          ],
+        },
+      }),
       handler: "index.handler",
       environment: {
-        IAM_ROLES_STACK_NAME: this.stackName
+        IAM_ROLES_STACK_NAME: this.stackName,
       },
     });
 
