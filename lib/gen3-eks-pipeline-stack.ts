@@ -108,14 +108,30 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     }
 
     // Lambda function to update Cluster on config change
-    const ssmChangeLambda = new lambda.Function(this, `${id}ClusterConfigLambda`, {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: "index.handler",
-      code: lambda.Code.fromAsset("lib/lambda/cluster-config"), 
-      environment: {
-        STAGE_NAME: id, 
-      },
-    });
+    const ssmChangeLambda = new lambda.Function(
+      this,
+      `${id}ClusterConfigLambda`,
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: "index.handler",
+        code: lambda.Code.fromAsset("lib/lambda/cluster-config", {
+          bundling: {
+            image: lambda.Runtime.NODEJS_20_X.bundlingImage,
+            command: [
+              "bash",
+              "-c",
+              [
+                "npm install",
+                "cp -r ./src/. /asset-output",
+              ].join(" && "),
+            ],
+          },
+        }),
+        environment: {
+          STAGE_NAME: id,
+        },
+      }
+    );
 
     // Grant necessary permissions to the Lambda function
     ssmChangeLambda.addToRolePolicy(

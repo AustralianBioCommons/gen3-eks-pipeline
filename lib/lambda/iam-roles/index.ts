@@ -1,27 +1,34 @@
-import { CloudFormation } from "aws-sdk";
-import { Context } from "aws-lambda";
+import {
+  CloudFormationClient,
+  UpdateStackCommand,
+} from "@aws-sdk/client-cloudformation";
+import { Context, APIGatewayProxyResult } from "aws-lambda";
 
-const cloudformation = new CloudFormation();
+const cloudformation = new CloudFormationClient({});
 
 export const handler = async (
   context: Context
-): Promise<any> => {
-  const stackName = process.env.IAM_ROLES_STACK_NAME; 
+): Promise<APIGatewayProxyResult> => {
+  const stackName = process.env.STACK_NAME;
 
   if (!stackName) {
-    throw new Error("STACK_NAME environment variable is not set");
+    return {
+      statusCode: 400,
+      body: JSON.stringify({
+        error: "STACK_NAME environment variable is not set",
+      }),
+    };
   }
 
   try {
-    // Trigger an update to the stack
-    const response = await cloudformation
-      .updateStack({
-        StackName: stackName,
-        UsePreviousTemplate: true,
-        Parameters: [],
-        Capabilities: ["CAPABILITY_NAMED_IAM"], 
-      })
-      .promise();
+    const command = new UpdateStackCommand({
+      StackName: stackName,
+      UsePreviousTemplate: true,
+      Parameters: [],
+      Capabilities: ["CAPABILITY_NAMED_IAM"],
+    });
+
+    const response = await cloudformation.send(command);
 
     return {
       statusCode: 200,
@@ -29,6 +36,12 @@ export const handler = async (
     };
   } catch (error) {
     console.error("Error updating stack:", error);
-    throw new Error("Failed to update stack");
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: "Failed to update stack",
+        details: error.message || "No details available",
+      }),
+    };
   }
 };
