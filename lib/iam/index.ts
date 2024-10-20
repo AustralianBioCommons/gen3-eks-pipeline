@@ -17,6 +17,7 @@ export const buildPolicyStatements = [
       "sts:AssumeRole",
       "secretsmanager:GetSecretValue",
       "secretsmanager:DescribeSecret",
+      "ssm:GetParameter",
       "cloudformation:*", // Use with caution; this grants permissions for all CloudFormation actions, consider restricting as needed
     ],
     resources: ["*"],

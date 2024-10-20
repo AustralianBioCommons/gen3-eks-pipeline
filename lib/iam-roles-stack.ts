@@ -1,6 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as cr from "aws-cdk-lib/custom-resources";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { CfnJson } from "aws-cdk-lib";
@@ -8,6 +9,10 @@ import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import * as yaml from "yaml";
+import * as path from 'path';
+
+
+import { execSync } from 'child_process';
 
 export interface IamRolesStackProps extends cdk.StackProps {
   env: cdk.Environment;
@@ -57,26 +62,24 @@ export class IamRolesStack extends cdk.Stack {
     );
 
     // Define a Lambda function that acts as a custom resource provider
-    const providerLambda = new lambda.Function(this, "FetchOidcFunction", {
+    const providerLambda = new NodejsFunction(this, "FetchOidcFunction", {
       runtime: lambda.Runtime.NODEJS_20_X,
-      code: lambda.Code.fromAsset("lib/lambda/oidc-resource-provider", {
-        bundling: {
-          image: lambda.Runtime.NODEJS_20_X.bundlingImage,
-          command: [
-            "bash",
-            "-c",
-            ["npm install", "cp -r ./src/. /asset-output"].join(" && "),
-          ],
-        },
-      }),
-      handler: "index.handler",
+      entry: path.join(
+        __dirname,
+        "./lambda/oidc-resource-provider/fetch-oidc-issuer.ts"
+      ),
+      handler: "handler",
+      timeout: cdk.Duration.minutes(15),
       environment: {
-        CLUSTER_NAME: clusterName, // Pass the cluster name as environment variable
+        CLUSTER_NAME: clusterName,
+      },
+      bundling: {
+        externalModules: [],
       },
       initialPolicy: [
         new iam.PolicyStatement({
-          actions: ["eks:DescribeCluster"], // Grant permissions to describe the EKS cluster
-          resources: ["*"], // Adjust the resource scope if necessary
+          actions: ["eks:DescribeCluster"],
+          resources: ["*"],
         }),
       ],
     });
@@ -160,9 +163,9 @@ export class IamRolesStack extends cdk.Stack {
           );
           role.addToPolicy(
             new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW, // Allow the defined actions
-              actions: permission.Action, // Specify allowed actions
-              resources: permission.Resource, // Specify allowed resources
+              effect: iam.Effect.ALLOW, 
+              actions: permission.Action, 
+              resources: permission.Resource,
             })
           );
         }
@@ -170,21 +173,16 @@ export class IamRolesStack extends cdk.Stack {
     });
 
     // Define a Lambda function to handle IAM role updates when the configuration changes
-    const updateLambda = new lambda.Function(this, "UpdateLambdaFunction", {
+    const updateLambda = new NodejsFunction(this, "UpdateLambdaFunction", {
       runtime: lambda.Runtime.NODEJS_20_X,
-      code: lambda.Code.fromAsset("lib/lambda/iam-roles", {
-        bundling: {
-          image: lambda.Runtime.NODEJS_14_X.bundlingImage,
-          command: [
-            "bash",
-            "-c",
-            ["npm install", "cp -r ./src/. /asset-output"].join(" && "),
-          ],
-        },
-      }),
-      handler: "index.handler",
+      entry: path.join(__dirname, "./lambda/iam-roles/iam-roles.ts"),
+      handler: "handler",
+      timeout: cdk.Duration.minutes(15),
       environment: {
-        IAM_ROLES_STACK_NAME: this.stackName,
+        CLUSTER_NAME: clusterName,
+      },
+      bundling: {
+        externalModules: []
       },
     });
 

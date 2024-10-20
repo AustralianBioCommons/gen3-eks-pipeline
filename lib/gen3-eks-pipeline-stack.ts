@@ -12,15 +12,20 @@ import { gen3ClusterProvider } from "./config/cluster/cluster-provider";
 import { buildPolicyStatements } from "./iam";
 import { IamRolesStack } from "./iam-roles-stack";
 import { getStages, project, Gen3BuildEnv } from "./config/environments";
-import * as lambda from "aws-cdk-lib/aws-lambda"; 
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as events from "aws-cdk-lib/aws-events"; 
 import * as targets from "aws-cdk-lib/aws-events-targets"; 
 import * as ssm from "aws-cdk-lib/aws-ssm"; 
-import * as iam from "aws-cdk-lib/aws-iam"; 
+import * as iam from "aws-cdk-lib/aws-iam";
+import * as path from 'path'; 
+
+import { execSync } from "child_process";
 
 export class Gen3EksPipelineStack extends cdk.Stack {
   async buildAsync(scope: Construct, id: string) {
-    validateSecret("gen3-env-credentials", toolsRegion);
+
+    validateSecret("gen3/config", toolsRegion);
     validateSecret("code-star-connection-arn", toolsRegion);
 
     const codeStarConnectionArn = await getSecretValue(
@@ -28,7 +33,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       toolsRegion
     );
     const envValues = JSON.parse(
-      await getSecretValue("gen3-env-credentials", toolsRegion)
+      await getSecretValue("gen3/config", toolsRegion)
     );
 
     const clusterName = `${id}-${project}`;
@@ -108,27 +113,22 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     }
 
     // Lambda function to update Cluster on config change
-    const ssmChangeLambda = new lambda.Function(
+    const ssmChangeLambda = new NodejsFunction(
       this,
       `${id}ClusterConfigLambda`,
       {
         runtime: lambda.Runtime.NODEJS_20_X,
-        handler: "index.handler",
-        code: lambda.Code.fromAsset("lib/lambda/cluster-config", {
-          bundling: {
-            image: lambda.Runtime.NODEJS_20_X.bundlingImage,
-            command: [
-              "bash",
-              "-c",
-              [
-                "npm install",
-                "cp -r ./src/. /asset-output",
-              ].join(" && "),
-            ],
-          },
-        }),
+        entry: path.join(
+          __dirname,
+          "./lambda/cluster-config/gen3-cluster-config.ts"
+        ),
+        handler: "handler",
+        timeout: cdk.Duration.minutes(15),
         environment: {
           STAGE_NAME: id,
+        },
+        bundling: {
+          bundlingFileAccess: cdk.BundlingFileAccess.VOLUME_COPY
         },
       }
     );
