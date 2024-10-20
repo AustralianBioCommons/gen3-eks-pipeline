@@ -1,9 +1,17 @@
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 
+/**
+ * Note: Users need to customize this module to fit their requirements.
+ * Care must be taken to ensure that the environments defined here match
+ * with the stages in ../environments.
+ */
+
+
+// Define the repository for workload configurations
 const WORKLOAD_REPO =
   "https://github.com/AustralianBioCommons/gen3-workloads.git";
 
-// Shared bootstrap repository definition
+// Function to configure the bootstrap repository for ArgoCD
 const bootstrapRepo = (
   env: string,
   targetRevision: string
@@ -15,7 +23,7 @@ const bootstrapRepo = (
   path: `environments/${env}`,
 });
 
-// Shared ExternalSecretsAddOn definition
+// Function to create the external secrets add-on configuration
 const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
   new blueprints.addons.ExternalsSecretsAddOn({
     values: {
@@ -25,7 +33,7 @@ const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
     },
   });
 
-// Shared ArgoCDAddOn definition
+// Function to configure the ArgoCD add-on for a specific environment
 const argoCdAddon = (
   env: string,
   targetRevision: string
@@ -46,9 +54,9 @@ const argoCdAddon = (
     },
   });
 
-// Common add-ons
+// Common add-ons to be included in all clusters
 export const commonAddons: Array<blueprints.ClusterAddOn> = [
-  new blueprints.addons.CertManagerAddOn(), 
+  new blueprints.addons.CertManagerAddOn(),
   new blueprints.addons.CalicoOperatorAddOn(),
   new blueprints.addons.MetricsServerAddOn(),
   new blueprints.addons.ClusterAutoScalerAddOn(),
@@ -60,7 +68,7 @@ export const commonAddons: Array<blueprints.ClusterAddOn> = [
   new blueprints.addons.EbsCsiDriverAddOn(),
 ];
 
-// Function to create cluster-specific add-ons
+// Function to create cluster-specific add-ons for different environments
 export function createClusterAddons(
   env: string,
   clusterName: string,
@@ -79,7 +87,7 @@ export function createClusterAddons(
   ];
 }
 
-// Environment-specific configurations
+// Environment-specific configurations for add-ons
 export const uatClusterAddons = createClusterAddons(
   "uat",
   "uatCluster",

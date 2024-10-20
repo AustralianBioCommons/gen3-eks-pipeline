@@ -6,31 +6,22 @@ import {
   KubernetesVersion,
   NodegroupAmiType,
 } from "aws-cdk-lib/aws-eks";
-import * as yaml from "yaml";
-import * as fs from "fs";
-import * as path from "path";
+import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 
-// Load and parse the YAML configuration file
-const configPath = path.resolve(__dirname, "config.yaml");
-const configFile = fs.readFileSync(configPath, "utf8");
-const config = yaml.parse(configFile);
+// Create an SSM client
+const ssmClient = new SSMClient({});
 
 // Generic cluster provider function
-export function gen3ClusterProvider(
+export async function gen3ClusterProvider(
   env: string,
   clusterName: string,
   vpcSubnets: ec2.SubnetSelection,
-  nodeGroupSubnets: ec2.SubnetSelection,
+  nodeGroupSubnets: ec2.SubnetSelection
 ) {
-  const clusterConfig = config.clusters[env];
+  const clusterConfig = await getClusterConfig(env);
 
-  if (!clusterConfig) {
-    throw new Error(`No configuration found for environment: ${env}`);
-  }
-
-  const versionString = clusterConfig["version"]
-
-  const version = getKubernetesVersion(versionString); ;
+  const versionString = clusterConfig["version"];
+  const version = getKubernetesVersion(versionString);
 
   return new blueprints.GenericClusterProvider({
     version: version,
@@ -55,17 +46,33 @@ export function gen3ClusterProvider(
   });
 }
 
+// Function to retrieve cluster configuration from Parameter Store
+async function getClusterConfig(env: string) {
+  const paramName = `/gen3/${env}/cluster-config`; 
+  const command = new GetParameterCommand({
+    Name: paramName,
+    WithDecryption: true,
+  });
+
+  try {
+    const response = await ssmClient.send(command);
+    return JSON.parse(response.Parameter?.Value || "{}");
+  } catch (error) {
+    throw new Error(`Error retrieving parameter: ${error}`);
+  }
+}
+
 // Function to map version string to KubernetesVersion enum
 function getKubernetesVersion(version: string): KubernetesVersion {
-    switch (version) {
-        case "1.30":
-            return KubernetesVersion.V1_30;
-        case "1.29":
-            return KubernetesVersion.V1_29;
-        case "1.28":
-            return KubernetesVersion.V1_28;
-        // Add more cases as needed
-        default:
-            throw new Error(`Unsupported Kubernetes version: ${version}`);
-    }
+  switch (version) {
+    case "1.30":
+      return KubernetesVersion.V1_30;
+    case "1.29":
+      return KubernetesVersion.V1_29;
+    case "1.28":
+      return KubernetesVersion.V1_28;
+    // Add more cases as needed
+    default:
+      throw new Error(`Unsupported Kubernetes version: ${version}`);
+  }
 }

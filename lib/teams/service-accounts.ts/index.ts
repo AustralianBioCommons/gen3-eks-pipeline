@@ -3,11 +3,15 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import { Gen3BuildEnv } from "../../config/environments";
 
 /**
- * We use Application Team class to create ExternalSecretsSa 
- * Kubernetes service account for the 'external-secrets operator. This service account
- * is granted specific IAM permissions to interact with AWS Secrets Manager and
- * SSM Parameter Store. It also creates a role will appropriate permissions,
+ * The Application Team class is used to create the ExternalSecretsSa
+ * Kubernetes service account for the external-secrets operator. This service account
+ * is assigned specific IAM permissions to interact with AWS Secrets Manager and
+ * SSM Parameter Store. Additionally, a corresponding role is created with the necessary permissions.
+ *
+ * Disclaimer: The current policy grants access to all secrets (`resources: ["*"]`). 
+ * This should be further restricted to specific resources or paths to follow the principle of least privilege.
  */
+
 export class ExternalSecretsSa extends ApplicationTeam {
   /**
    * The constructor initializes the `ApplicationTeam` superclass with specific configurations.
@@ -37,21 +41,22 @@ export class ExternalSecretsSa extends ApplicationTeam {
     // Creates an IAM policy statement granting specific permissions for Secrets Manager, SSM, and KMS
     const smPolicy = new iam.PolicyStatement({
       actions: [
-        "secretsmanager:GetResourcePolicy", 
-        "secretsmanager:GetSecretValue", 
-        "secretsmanager:DescribeSecret", 
-        "secretsmanager:ListSecretVersionIds", 
-        "secretsmanager:ListSecrets", 
+        "secretsmanager:GetResourcePolicy",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:ListSecretVersionIds",
+        "secretsmanager:ListSecrets",
 
-        "ssm:DescribeParameters", 
+        "ssm:DescribeParameters",
         "ssm:GetParameter",
-        "ssm:GetParameters", 
-        "ssm:GetParametersByPath", 
-        "ssm:GetParameterHistory", 
+        "ssm:GetParameters",
+        "ssm:GetParametersByPath",
+        "ssm:GetParameterHistory",
 
-        "kms:Decrypt", 
+        "kms:Decrypt",
       ],
-      resources: ["*"], // The policy allows access to all secrets (this should be further restricted)
+      // The policy allows access to all secrets (this should be further restricted)
+      resources: ["*"],
     });
 
     // Attaches the above policy to the service account, allowing it to interact with AWS Secrets Manager and SSM
