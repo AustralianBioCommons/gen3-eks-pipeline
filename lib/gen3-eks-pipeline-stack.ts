@@ -1,148 +1,95 @@
-import * as blueprints from '@aws-quickstart/eks-blueprints';
-import * as cdk from 'aws-cdk-lib';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import { Construct } from 'constructs';
-import * as sm from 'aws-cdk-lib/aws-secretsmanager';
-import {BuildEnv, EksPipelineRepo, Project } from "./environments";
-import *  as clusterConfig from  './cluster'
-import {TeamPlatform} from "./teams";
-import {buildPolicyStatements} from "./iam";
-import { ExternalSecretsSa } from './teams/service-accounts.ts';
-
-
-export interface Gen3EksPipelineStackProps {
-  project: string;
-
-}
+import * as blueprints from "@aws-quickstart/eks-blueprints";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
+import {
+  getSecretValue,
+  validateSecret,
+} from "@aws-quickstart/eks-blueprints/dist/utils/secrets-manager-utils";
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { EksPipelineRepo, toolsRegion } from "./config/environments";
+import * as clusterConfig from "./config/cluster";
+import { gen3ClusterProvider } from "./config/cluster/cluster-provider";
+import { buildPolicyStatements } from "./iam";
+import { IamRolesStack } from "./iam-roles-stack";
+import { getStages, project, Gen3BuildEnv } from "./config/environments";
+import * as lambda from "aws-cdk-lib/aws-lambda"; 
+import * as events from "aws-cdk-lib/aws-events"; 
+import * as targets from "aws-cdk-lib/aws-events-targets"; 
+import * as ssm from "aws-cdk-lib/aws-ssm"; 
+import * as iam from "aws-cdk-lib/aws-iam"; 
 
 export class Gen3EksPipelineStack extends cdk.Stack {
+  async buildAsync(scope: Construct, id: string) {
+    validateSecret("gen3-env-credentials", toolsRegion);
+    validateSecret("code-star-connection-arn", toolsRegion);
 
-  async buildAsync(scope: Construct, id: string, props: Gen3EksPipelineStackProps) {
+    const codeStarConnectionArn = await getSecretValue(
+      "code-star-connection-arn",
+      toolsRegion
+    );
+    const envValues = JSON.parse(
+      await getSecretValue("gen3-env-credentials", toolsRegion)
+    );
 
-    const clusterName = id+'-'+Project;
-
-    const devVpcId = BuildEnv.dev.vpcId;
-    // const sandboxVpcId = await getVpcId(BuildEnv.sandbox);
-    const testVpcId = BuildEnv.test.vpcId;
-    // const prodVpcId = await getVpcId(BuildEnv.prod);
-    const uatVpcId = BuildEnv.uat.vpcId;
-    
-    const stagingVpcId = BuildEnv.staging.vpcId;
-
-    const prodVpcId = BuildEnv.prod.vpcId;
-
-    const sandboxTeams: Array<blueprints.Team> = [
-      new TeamPlatform(BuildEnv.sandbox),
-    ];
-    const devTeams: Array<blueprints.Team> = [
-      new TeamPlatform(BuildEnv.dev),
-    ];
-    const testTeams: Array<blueprints.Team> = [
-      new TeamPlatform(BuildEnv.test),
-    ];
-
-    const uatTeams: Array<blueprints.Team> = [
-      new TeamPlatform(BuildEnv.uat),
-    ];
-
-    const stagingTeams: Array<blueprints.Team> = [
-      new TeamPlatform(BuildEnv.staging),
-    ];
-    const prodTeams: Array<blueprints.Team> = [
-      new TeamPlatform(BuildEnv.prod),
-    ];
-
-    const externalSecretSa: Array<blueprints.Team> = [new ExternalSecretsSa(BuildEnv.uat)];
-
-    const stagingExternalSecretSa: Array<blueprints.Team> = [
-          new ExternalSecretsSa(BuildEnv.staging),
-        ];
-    const prodExternalSecretSa: Array<blueprints.Team> = [
-      new ExternalSecretsSa(BuildEnv.prod),
-    ];
-    const account = BuildEnv.tools.aws.account;
-    const region = BuildEnv.tools.aws.region;
+    const clusterName = `${id}-${project}`;
+    const account = envValues.tools.aws.account;
+    const region = envValues.tools.aws.region;
 
     blueprints.HelmAddOn.validateHelmVersions = true;
     blueprints.HelmAddOn.failOnVersionValidation = false;
     blueprints.utils.logger.settings.minLevel = 3; // info
     blueprints.utils.userLog.settings.minLevel = 2; // debug
 
-
-    const nodeRole = new blueprints.CreateRoleProvider('gen3-node-role', new iam.ServicePrincipal('ec2.amazonaws.com'),
-        [
-          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSWorkerNodePolicy'),
-          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryReadOnly'),
-          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
-        ]);
-
-    const serviceRole = new blueprints.CreateRoleProvider('gen3-service-role',
-        new iam.FederatedPrincipal('sts.amazonaws.com',
-            {
-              StringEquals: { 'sts:ViaService': `eks.${this.region}.amazonaws.com` },
-              'ForAnyValue:StringLike': { 'sts:ExternalId': 'E60ED68B98362E7D568EA4908070A66B' },
-            },
-            'sts:AssumeRoleWithWebIdentity'),
-        [iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3ReadOnlyAccess')]
-        );
-
     const addOns: Array<blueprints.ClusterAddOn> = [
       new blueprints.addons.AwsLoadBalancerControllerAddOn({
-        enableWafv2: true
+        enableWafv2: true,
       }),
-      new blueprints.addons.CertManagerAddOn(),
-      new blueprints.addons.CalicoOperatorAddOn(),
-      new blueprints.addons.MetricsServerAddOn(),
-      new blueprints.addons.ClusterAutoScalerAddOn(),
-      new blueprints.addons.SecretsStoreAddOn(),
-      new blueprints.addons.SSMAgentAddOn(),
-      new blueprints.addons.CoreDnsAddOn(),
-      new blueprints.addons.KubeProxyAddOn(),
-      new blueprints.addons.VpcCniAddOn(),
-      new blueprints.addons.EbsCsiDriverAddOn(),
+      ...clusterConfig.commonAddons,
     ];
 
     const blueprint = blueprints.EksBlueprint.builder()
-        .name(clusterName)
-        .account(account)
-        .region(region)
-        .addOns(...addOns)
-        .resourceProvider(`gen3-node-role-${id}`, nodeRole)
-        .resourceProvider(`serviceRole-${id}`, serviceRole);
+      .name(clusterName)
+      .account(account)
+      .region(region)
+      .addOns(...addOns);
 
-    // @ts-ignore
-    blueprints.CodePipelineStack.builder()
-      .name(`gen3-eks-${BuildEnv.tools.name}`)
+    // Gen3 environment stages
+    const stages = await getStages();
+
+    // Create the CodePipelineStack
+    const pipelineStack = blueprints.CodePipelineStack.builder()
+      .name(`gen3-eks-${envValues.tools.name}`)
       .owner(EksPipelineRepo.gitRepoOwner)
       .codeBuildPolicies(buildPolicyStatements)
       .repository({
         repoUrl: EksPipelineRepo.repoUrl,
-        codeStarConnectionArn:
-          "arn:aws:codestar-connections:ap-southeast-2:891377157203:connection/f7b5ea72-f57f-4c3b-a00a-fda36a5719b1",
+        codeStarConnectionArn,
         targetRevision: EksPipelineRepo.tagRevision,
       })
-      .enableCrossAccountKeys()
-      .stage({
-        id: "uat",
+      .enableCrossAccountKeys();
+
+    // Add stages dynamically
+    for (const { id, env, teams, externalSecret, addons } of stages) {
+      const stage = pipelineStack.stage({
+        id: id,
         stackBuilder: blueprint
           .clone(region)
-          .name(`${clusterName}-${BuildEnv.uat.name}`)
-          .addOns(
-            ...clusterConfig.uatClusterAddons(
-              `${clusterName}-${BuildEnv.uat.name}`
-            )
-          )
-          .teams(...uatTeams, ...externalSecretSa)
+          .name(env.clusterName)
+          .addOns(...addons)
+          .teams(...teams, externalSecret)
           .clusterProvider(
-            clusterConfig.uatClusterProvider(
-              `${clusterName}-${BuildEnv.uat.name}`
+            await gen3ClusterProvider(
+              env.name,
+              env.clusterName,
+              this.subnetsSelection(env.clusterSubnets, "cluster"),
+              this.subnetsSelection(env.nodeGroupSubnets, "nodes")
             )
           )
           .resourceProvider(
             blueprints.GlobalResources.Vpc,
-            new blueprints.VpcProvider(uatVpcId)
+            new blueprints.VpcProvider(env.vpcId)
           )
-          .withEnv(BuildEnv.uat.aws),
+          .withEnv(env.aws),
         stageProps: {
           pre: [
             new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
@@ -150,67 +97,72 @@ export class Gen3EksPipelineStack extends cdk.Stack {
             ),
           ],
         },
+      });
+    }
+
+    pipelineStack.build(scope, `${id}-stack`, { env: envValues.tools.aws });
+
+    // Add IAM Role Stacks for each environment
+    for (const { env } of stages) {
+      this.addIamRoleStack(scope, env);
+    }
+
+    // Lambda function to update Cluster on config change
+    const ssmChangeLambda = new lambda.Function(this, `${id}ClusterConfigLambda`, {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: "index.handler",
+      code: lambda.Code.fromAsset("lib/lambda/cluster-config"), 
+      environment: {
+        STAGE_NAME: id, 
+      },
+    });
+
+    // Grant necessary permissions to the Lambda function
+    ssmChangeLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "cloudformation:UpdateStack",
+          "cloudformation:DescribeStacks",
+        ],
+        resources: ["*"],
       })
-      .stage({
-        id: "staging",
-        stackBuilder: blueprint
-          .clone(region)
-          .name(`${clusterName}-${BuildEnv.staging.name}`)
-          .addOns(
-            ...clusterConfig.stagingClusterAddons(
-              `${clusterName}-${BuildEnv.staging.name}`
-            )
-          )
-          .teams(...stagingTeams, ...stagingExternalSecretSa)
-          .clusterProvider(
-            clusterConfig.stagingClusterProvider(
-              `${clusterName}-${BuildEnv.staging.name}`
-            )
-          )
-          .resourceProvider(
-            blueprints.GlobalResources.Vpc,
-            new blueprints.VpcProvider(stagingVpcId)
-          )
-          .withEnv(BuildEnv.staging.aws),
-        stageProps: {
-          pre: [
-            new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
-              "manual-approval"
-            ),
-          ],
-        },
-      })
-      .stage({
-        id: "prod",
-        stackBuilder: blueprint
-          .clone(region)
-          .name(`${clusterName}-${BuildEnv.prod.name}`)
-          .addOns(
-            ...clusterConfig.prodClusterAddons(
-              `${clusterName}-${BuildEnv.prod.name}`
-            )
-          )
-          .teams(...prodTeams, ...prodExternalSecretSa)
-          .clusterProvider(
-            clusterConfig.prodClusterProvider(
-              `${clusterName}-${BuildEnv.prod.name}`
-            )
-          )
-          .resourceProvider(
-            blueprints.GlobalResources.Vpc,
-            new blueprints.VpcProvider(prodVpcId)
-          )
-          .withEnv(BuildEnv.prod.aws),
-        stageProps: {
-          pre: [
-            new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
-              "manual-approval"
-            ),
-          ],
-        },
-      })
-      .build(scope, id + "-stack", { env: BuildEnv.tools.aws });
+    );
+
+    // CloudWatch event rule to trigger Lambda on SSM parameter change
+    for (const { id } of stages) {
+      const ssmParameterChangeRule = new events.Rule(
+        this,
+        `${id}SSMParameterChangeRule`,
+        {
+          eventPattern: {
+            source: ["aws.ssm"],
+            detailType: ["SSM Parameter Store Change"],
+            detail: {
+              name: [`/gen3/${id}/cluster-config`], 
+            },
+          },
+        }
+      );
+
+      ssmParameterChangeRule.addTarget(
+        new targets.LambdaFunction(ssmChangeLambda)
+      );
+    }
   }
 
-}
+  private subnetsSelection(subnetIds: [string], type: string) {
+    const subnetsSelection: ec2.SubnetSelection = {
+      subnets: subnetIds.map((subnetId) =>
+        ec2.Subnet.fromSubnetId(this, `Subnet-${subnetId}-${type}`, subnetId)
+      ),
+    };
+    return subnetsSelection;
+  }
 
+  private addIamRoleStack(scope: Construct, buildEnv: Gen3BuildEnv) {
+    new IamRolesStack(scope, `${buildEnv.clusterName}-IamRoles`, {
+      env: buildEnv.aws,
+      buildEnv: buildEnv,
+    });
+  }
+}

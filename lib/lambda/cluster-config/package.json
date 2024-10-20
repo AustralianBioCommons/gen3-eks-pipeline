@@ -1,0 +1,11 @@
+{
+  "name": "custom-resource-provider",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.1185.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.112"
+  }
+}

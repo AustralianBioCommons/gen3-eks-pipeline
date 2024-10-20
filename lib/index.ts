@@ -1,11 +1,9 @@
-export * from './gen3';
-export * as gen3 from './gen3';
 
-export * from './cluster'
-export * as cluster from './cluster'
+export * from './config/cluster'
+export * as cluster from './config/cluster'
 
-export * from './environments'
-export * as environments from './environments'
+export * from './config/environments'
+export * as environments from './config/environments'
 
 export * from './teams'
 
