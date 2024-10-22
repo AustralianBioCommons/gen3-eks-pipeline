@@ -11,7 +11,7 @@ import * as clusterConfig from "./config/cluster";
 import { gen3ClusterProvider } from "./config/cluster/cluster-provider";
 import { buildPolicyStatements } from "./iam";
 import { IamRolesStack } from "./iam-roles-stack";
-import { getStages, project, validateParameter, getAwsConfig, Gen3Stage } from "./config/environments";
+import { getStages, project, validateParameter, getAwsConfig } from "./config/environments";
 import { EnvironmentConfig } from "./config/environments/config-interfaces";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
