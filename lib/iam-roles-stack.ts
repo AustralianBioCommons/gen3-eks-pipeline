@@ -10,13 +10,17 @@ import * as targets from "aws-cdk-lib/aws-events-targets";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import * as yaml from "yaml";
 import * as path from 'path';
+import { EnvironmentConfig } from "./config/environments/config-interfaces";
 
-
-import { execSync } from 'child_process';
-
+/**
+ * This stack automates the creation and updating of IAM roles in an EKS cluster, 
+ * enabling OIDC-based role assumptions for Kubernetes service accounts, 
+ * and integrates with AWS services like SSM, Lambda, and 
+ * EventBridge to ensure dynamic, event-driven updates to IAM roles.
+ */
 export interface IamRolesStackProps extends cdk.StackProps {
   env: cdk.Environment;
-  buildEnv: any;
+  buildEnv: EnvironmentConfig;
 }
 
 export class IamRolesStack extends cdk.Stack {
@@ -87,8 +91,8 @@ export class IamRolesStack extends cdk.Stack {
     // Create a custom resource to fetch OIDC information for the cluster
     const customResource = new cr.AwsCustomResource(this, "FetchOidc", {
       onCreate: {
-        service: "Lambda", // Specify Lambda service for invocation
-        action: "invoke", // Invoke the Lambda function
+        service: "Lambda", 
+        action: "invoke", 
         parameters: {
           FunctionName: providerLambda.functionArn,
           Payload: JSON.stringify({
@@ -97,7 +101,7 @@ export class IamRolesStack extends cdk.Stack {
             },
           }),
         },
-        physicalResourceId: cr.PhysicalResourceId.of(clusterName), // Use cluster name as the physical resource ID
+        physicalResourceId: cr.PhysicalResourceId.of(clusterName), 
       },
       policy: cr.AwsCustomResourcePolicy.fromStatements([
         new iam.PolicyStatement({

@@ -11,30 +11,27 @@ import * as clusterConfig from "./config/cluster";
 import { gen3ClusterProvider } from "./config/cluster/cluster-provider";
 import { buildPolicyStatements } from "./iam";
 import { IamRolesStack } from "./iam-roles-stack";
-import { getStages, project, Gen3BuildEnv } from "./config/environments";
+import { getStages, project, validateParameter, getAwsConfig, Gen3Stage } from "./config/environments";
+import { EnvironmentConfig } from "./config/environments/config-interfaces";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as events from "aws-cdk-lib/aws-events"; 
 import * as targets from "aws-cdk-lib/aws-events-targets"; 
-import * as ssm from "aws-cdk-lib/aws-ssm"; 
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as path from 'path'; 
-
-import { execSync } from "child_process";
+import { Gen3ConfigEventsStack } from "./gen3-config-events-stack";
 
 export class Gen3EksPipelineStack extends cdk.Stack {
   async buildAsync(scope: Construct, id: string) {
+    validateParameter("/gen3/config");
 
-    validateSecret("gen3/config", toolsRegion);
     validateSecret("code-star-connection-arn", toolsRegion);
 
     const codeStarConnectionArn = await getSecretValue(
       "code-star-connection-arn",
       toolsRegion
     );
-    const envValues = JSON.parse(
-      await getSecretValue("gen3/config", toolsRegion)
-    );
+    const envValues = JSON.parse(await getAwsConfig(toolsRegion));
 
     const clusterName = `${id}-${project}`;
     const account = envValues.tools.aws.account;
@@ -86,8 +83,8 @@ export class Gen3EksPipelineStack extends cdk.Stack {
             await gen3ClusterProvider(
               env.name,
               env.clusterName,
-              this.subnetsSelection(env.clusterSubnets, "cluster"),
-              this.subnetsSelection(env.nodeGroupSubnets, "nodes")
+              this.subnetsSelection(env.clusterSubnets!, "cluster"),
+              this.subnetsSelection(env.nodeGroupSubnets!, "nodes")
             )
           )
           .resourceProvider(
@@ -112,6 +109,12 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       this.addIamRoleStack(scope, env);
     }
 
+    // Event Bus stacks for each each environment
+    // account is the source (tools) account here
+    for (const { env } of stages) {
+      this.addEventBusStack(scope, env, account);
+    }
+
     // Lambda function to update Cluster on config change
     const ssmChangeLambda = new NodejsFunction(
       this,
@@ -128,7 +131,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           STAGE_NAME: id,
         },
         bundling: {
-          bundlingFileAccess: cdk.BundlingFileAccess.VOLUME_COPY
+          bundlingFileAccess: cdk.BundlingFileAccess.VOLUME_COPY,
         },
       }
     );
@@ -154,7 +157,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
             source: ["aws.ssm"],
             detailType: ["SSM Parameter Store Change"],
             detail: {
-              name: [`/gen3/${id}/cluster-config`], 
+              name: [`/gen3/${id}/cluster-config`],
             },
           },
         }
@@ -166,7 +169,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     }
   }
 
-  private subnetsSelection(subnetIds: [string], type: string) {
+  private subnetsSelection(subnetIds: string[], type: string) {
     const subnetsSelection: ec2.SubnetSelection = {
       subnets: subnetIds.map((subnetId) =>
         ec2.Subnet.fromSubnetId(this, `Subnet-${subnetId}-${type}`, subnetId)
@@ -175,10 +178,22 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     return subnetsSelection;
   }
 
-  private addIamRoleStack(scope: Construct, buildEnv: Gen3BuildEnv) {
+  private addIamRoleStack(scope: Construct, buildEnv: EnvironmentConfig) {
     new IamRolesStack(scope, `${buildEnv.clusterName}-IamRoles`, {
       env: buildEnv.aws,
       buildEnv: buildEnv,
+    });
+  }
+
+  private addEventBusStack(
+    scope: Construct,
+    buildEnv: EnvironmentConfig,
+    toolsAccountId: string
+  ) {
+    new Gen3ConfigEventsStack(scope, `${buildEnv.name}-eventBus`, {
+      env: buildEnv.aws,
+      buildEnv: buildEnv,
+      toolsAccount: toolsAccountId,
     });
   }
 }

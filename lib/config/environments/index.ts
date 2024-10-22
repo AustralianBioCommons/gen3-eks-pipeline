@@ -1,14 +1,13 @@
 import * as cdk from "aws-cdk-lib";
 import { TeamPlatform } from "../../teams";
-import {
-  getSecretValue,
-} from "@aws-quickstart/eks-blueprints/dist/utils/secrets-manager-utils";
 import { ExternalSecretsSa } from "../../teams/service-accounts.ts";
 import * as clusterConfig from "../../config/cluster";
+import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
+import { EnvironmentConfig } from "./config-interfaces";
 
 /**
  * This module defines the configuration for the Gen3 EKS environments, including
- * the UAT, staging, and production stages. Users can customize and define their own 
+ * the all stages defined in configuration files. Users can customize and define their own 
  * environments within this module. It imports necessary libraries and utilities for 
  * handling AWS resources and secret management.
  *
@@ -34,13 +33,12 @@ export const toolsRegion = "ap-southeast-2"
 // Project id, which can be used easily identify your stacks
 export const project = "cad"
 
-export interface Gen3BuildEnv {
-  name: string;
-  clusterName: string;
-  aws: cdk.Environment;
-  platformRoleName: string;
-  vpcId: string;
-  namespace: string;
+export interface Gen3Stage {
+  id: string;
+  env: EnvironmentConfig;
+  teams: TeamPlatform[];
+  externalSecret: ExternalSecretsSa;
+  addons: any; 
 }
 
 export const EksPipelineRepo = {
@@ -52,12 +50,10 @@ export const EksPipelineRepo = {
 
 // Function to retrieve the environment values
 export async function getStages() {
-  const envValues = JSON.parse(
-    await getSecretValue("gen3-env-credentials", toolsRegion)
-  );
+  const envValues  = JSON.parse(await getAwsConfig(toolsRegion))
 
   // Define environment stages
-  const stages = [
+  const stages: Gen3Stage[] = [
     {
       id: "uat",
       env: envValues.uat,
@@ -82,4 +78,36 @@ export async function getStages() {
   ];
 
   return stages;
+}
+
+export async function validateParameter(parameterName: string): Promise<boolean> {
+  const ssmClient = new SSMClient({ region: toolsRegion });
+  try {
+    const command = new GetParameterCommand({ Name: parameterName });
+    await ssmClient.send(command);
+    return true;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log(`Error for Parameter: ${parameterName}, ${error.name}`)
+      throw error;
+    }
+    throw error;
+  }
+}
+
+// Function to retrieve aws  configuration from Parameter Store
+export async function getAwsConfig(region: string) {
+  const paramName = "/gen3/config"; 
+  const command = new GetParameterCommand({
+    Name: paramName,
+    WithDecryption: true,
+  });
+
+  try {
+    const ssmClient = new SSMClient({ region });
+    const response = await ssmClient.send(command)
+    return response.Parameter?.Value || "{}";
+  } catch (error) {
+    throw new Error(`Error retrieving parameter: ${error}`);
+  }
 }

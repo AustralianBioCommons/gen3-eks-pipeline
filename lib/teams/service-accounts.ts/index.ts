@@ -1,6 +1,6 @@
 import { ApplicationTeam, ClusterInfo } from "@aws-quickstart/eks-blueprints";
 import * as iam from "aws-cdk-lib/aws-iam";
-import { Gen3BuildEnv } from "../../config/environments";
+import { EnvironmentConfig } from "../../config/environments/config-interfaces";
 
 /**
  * The Application Team class is used to create the ExternalSecretsSa
@@ -16,10 +16,10 @@ export class ExternalSecretsSa extends ApplicationTeam {
   /**
    * The constructor initializes the `ApplicationTeam` superclass with specific configurations.
    *
-   * @param buildEnv - The build environment object (`Gen3BuildEnv`) containing environment-specific settings.
+   * @param buildEnv - The build environment object (`EnvironmentConfig`) containing environment-specific settings.
    * It is used to manage different configurations for environments like dev, test, and production.
    */
-  constructor(buildEnv: Gen3BuildEnv) {
+  constructor(buildEnv: EnvironmentConfig) {
     // Calling the parent class (ApplicationTeam) constructor with specific values for team name and namespace
     super({
       name: "external-secrets", // Defines the team name as 'external-secrets'
