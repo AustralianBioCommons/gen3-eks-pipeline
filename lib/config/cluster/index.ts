@@ -91,15 +91,15 @@ export function createClusterAddons(
 export const uatClusterAddons = createClusterAddons(
   "uat",
   "uatCluster",
-  "testing"
+  "testing" //Workloads repo tag/branch
 );
 export const stagingClusterAddons = createClusterAddons(
   "staging",
   "stagingCluster",
-  "main"
+  "main" //Workloads repo tag/branch
 );
 export const prodClusterAddons = createClusterAddons(
   "prod",
   "prodCluster",
-  "main"
+  "main" //Workloads repo tag/branch
 );
