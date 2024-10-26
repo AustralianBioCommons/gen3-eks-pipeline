@@ -90,36 +90,26 @@ Usage
 Adding/Removing Environments
 ----------------------------
 
-To manage environments, you can modify the existing configurations or add new ones in the `createClusterAddons` function. This will automatically deploy environment-specific add-ons and configurations for your new environment.
+To manage environments, you can modify the existing configurations  This will automatically deploy environment-specific add-ons and configurations for your new environment.
 
 ### Adding a New Environment
 
-1.  Add the new environment in the `createClusterAddons` function. For example, to add a "dev" environment:
+1.  Add the new environment in `lib/config/environments/index.ts. For example, to add a "dev" environment:
+
+        {
+          id: "dev",
+          env: envValues.dev,
+          teams: [new TeamPlatform(envValues.dev)],
+          externalSecret: new ExternalSecretsSa(envValues.dev),
+          addons: clusterConfig.createClusterAddons(
+            "dev",  // Environment name
+            envValues.dev.clusterName, // cluster name
+            "latest" //Workloads repo tag/branch
+          ),
+        }
 
 
-
-    `export const devClusterAddons = createClusterAddons(
-      "dev",
-      "devCluster",
-      "develop"  // Set the Git branch or tag for the environment
-    );`
-
-2.  Update the bootstrap repository to include the new environment path:
-
-
-
-    `const bootstrapRepo = (
-      env: string,
-      targetRevision: string
-    ): blueprints.ApplicationRepository => ({
-      repoUrl: WORKLOAD_REPO,
-      credentialsSecretName: "gen3-argocd",
-      credentialsType: "TOKEN",
-      targetRevision: targetRevision,
-      path: `environments/${env}`,
-    });`
-
-3.  Ensure that the environment-specific values YAML file is available in the workload repo:
+2.  Ensure that the environment-specific values YAML file is available in the workload repo:
 
     -   Path: `environments/dev/gen3-values.yaml`
     -   Adjust values based on environment-specific configurations like namespaces, server settings, etc.

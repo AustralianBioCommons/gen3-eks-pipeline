@@ -59,6 +59,13 @@ const sendResponse = async (
   status: string,
   responseData: Record<string, any> = {}
 ): Promise<void> => {
+  if (!event.ResponseURL) {
+    console.error("Missing ResponseURL in the event.");
+    throw new Error(
+      "Invalid CloudFormation custom resource event: Missing ResponseURL."
+    );
+  }
+
   const responseBody = JSON.stringify({
     Status: status,
     PhysicalResourceId: responseData.PhysicalResourceId,
