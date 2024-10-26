@@ -15,8 +15,8 @@ const ssmClient = new SSMClient({});
 export async function gen3ClusterProvider(
   env: string,
   clusterName: string,
-  vpcSubnets: ec2.SubnetSelection,
-  nodeGroupSubnets: ec2.SubnetSelection
+  vpcSubnets?: ec2.SubnetSelection,
+  nodeGroupSubnets?: ec2.SubnetSelection
 ) {
   const clusterConfig = await getClusterConfig(env);
 
@@ -27,7 +27,7 @@ export async function gen3ClusterProvider(
     version: version,
     clusterName: clusterName,
     endpointAccess: EndpointAccess.PRIVATE,
-    vpcSubnets: [vpcSubnets],
+    vpcSubnets: vpcSubnets ? [vpcSubnets] : undefined,
     managedNodeGroups: [
       {
         id: `mng-${env}`,
@@ -39,7 +39,7 @@ export async function gen3ClusterProvider(
         amiType: NodegroupAmiType.AL2_X86_64,
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
         amiReleaseVersion: clusterConfig.amiReleaseVersion,
-        nodeGroupSubnets,
+        nodeGroupSubnets: nodeGroupSubnets || undefined,
         tags: clusterConfig.tags,
       },
     ],

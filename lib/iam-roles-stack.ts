@@ -183,7 +183,7 @@ export class IamRolesStack extends cdk.Stack {
       handler: "handler",
       timeout: cdk.Duration.minutes(15),
       environment: {
-        CLUSTER_NAME: clusterName,
+        STACK_NAME: this.stackName,
       },
       bundling: {
         externalModules: []

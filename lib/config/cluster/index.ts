@@ -6,6 +6,8 @@ import * as blueprints from "@aws-quickstart/eks-blueprints";
  * with the stages in ../environments.
  */
 
+// ArgoCd credential prefix in secret Manager
+const argocdCredentialName = "cad-argocdAdmin";
 
 // Define the repository for workload configurations
 const WORKLOAD_REPO =
@@ -39,7 +41,7 @@ const argoCdAddon = (
   targetRevision: string
 ): blueprints.addons.ArgoCDAddOn =>
   new blueprints.addons.ArgoCDAddOn({
-    adminPasswordSecretName: `cad-argocdAdmin-${env}`,
+    adminPasswordSecretName: `${argocdCredentialName}-${env}`,
     name: `${env}Gen3Cluster`,
     bootstrapRepo: bootstrapRepo(env, targetRevision),
     values: {
@@ -87,19 +89,6 @@ export function createClusterAddons(
   ];
 }
 
-// Environment-specific configurations for add-ons
-export const uatClusterAddons = createClusterAddons(
-  "uat",
-  "uatCluster",
-  "testing" //Workloads repo tag/branch
-);
-export const stagingClusterAddons = createClusterAddons(
-  "staging",
-  "stagingCluster",
-  "main" //Workloads repo tag/branch
-);
-export const prodClusterAddons = createClusterAddons(
-  "prod",
-  "prodCluster",
-  "main" //Workloads repo tag/branch
-);
+
+
+

@@ -1,9 +1,8 @@
 Gen3 EKS Pipeline Stack
 =======================
 
-This project builds an AWS EKS (Elastic Kubernetes Service) cluster using the [AWS CDK EKS Blueprints](https://github.com/aws-quickstart/cdk-eks-blueprints). The stack is configured to bootstrap with ArgoCD and deploy Gen3 Helm charts from the `gen3-helm` and `gen3-workloads` repositories.
+This repository contains the CDK (Cloud Development Kit) setup for deploying a Gen3 EKS (Elastic Kubernetes Service) pipeline. The stack bootstraps a Gen3 cluster with ArgoCD and deploys workloads using Gen3 Helm charts.
 
-The infrastructure automates cluster provisioning for environments like UAT, staging, and production, complete with common add-ons such as CertManager, MetricsServer, and ClusterAutoScaler.
 
 Key Features
 ------------
@@ -14,6 +13,24 @@ Key Features
 -   **Cluster Add-Ons**: Common Kubernetes add-ons are installed for networking, logging, monitoring, and scaling.
 -   **Customizable Environment Stages**: Easily manage configurations for UAT, staging, production, or new environments.
 
+Table of Contents
+-----------------
+
+-   [Introduction](#introduction)
+-   [Prerequisites](#prerequisites)
+-   [Getting Started](#getting-started)
+-   [Usage](#usage)
+    -   [Forking the Repository and Configuring Environments](#forking-the-repository-and-configuring-environments)
+    -   [Deploying the Stack](#deploying-the-stack)
+-   [Customizations](#customizations)
+-   [Contributing](#contributing)
+
+Introduction
+------------
+
+This stack is built on the [AWS Quick Start EKS Blueprints](https://github.com/aws-quickstart/cdk-eks-blueprints) framework, allowing users to create a fully managed EKS cluster with various add-ons and configurations tailored for Gen3 environments.
+
+
 Prerequisites
 -------------
 
@@ -21,32 +38,54 @@ Prerequisites
 -   [AWS CLI](https://aws.amazon.com/cli/)
 -   [Node.js 16+](https://nodejs.org/)
 -   AWS IAM Role for deploying the CDK stack.
--   [AWS CodeStar Connection](https://docs.aws.amazon.com/dtconsole/latest/userguide/welcome-connections.html) ARN for GitHub integration.
+-   [AWS CodeStar Connection](https://docs.aws.amazon.com/dtconsole/latest/userguide/welcome-connections.html) ARN for GitHub integration. The ARN must be stored in AWS Secrets Manager in the account where this stack is deployed (Tools), with the name `code-star-connection-arn`. The Stack will fail to deploy without this.
 
-Git Configuration
+**ArgoCD Passwords in AWS Secrets Manager**: The tools/management account where this stack will be deployed must have ArgoCD passwords stored in AWS Secrets Manager. The naming convention for these secrets is `<name>-<environment prefix>`, with the default secret name being `argocdAdmin-{env}`. This can be customized in `lib/config/cluster/index.ts` at the variable:
+
+
+`const argocdCredentialName = "argocdAdmin-{env}";`
+
+Example: For each environment (UAT, staging, production), you will need credentials in AWS Secrets Manager with the following names:
+
+-   `argocdAdmin-uat`
+-   `argocdAdmin-staging`
+-   `argocdAdmin-prod`
+
+If you used **gen3-cdk-config**, then these would have been setup for you.
+
+**Workloads AWS Account Setup**: Each AWS account that will host an environment (UAT, staging, production) must have a GitHub access token for ArgoCD. This token will be stored in AWS Secrets Manager under the name `gen3-argocd`.
+
+-   For detailed information on creating and configuring a GitHub access token, refer to the [ArgoCD documentation](https://argo-cd.readthedocs.io/en/release-1.8/user-guide/private-repositories/).
+
+
+Getting Started
 -----------------
 
-You will need to configure GitHub repositories to store and manage Helm chart configurations:
 
-1.  **Workload Repository**: The stack deploys Helm charts from the [Gen3 Workloads](https://github.com/AustralianBioCommons/gen3-workloads.git) repository.
+1.  **Workload Repository**: You will need to configure GitHub repository to store and manage Helm chart configurations. The stack deploys [Gen3 Helm charts](https://helm.gen3.org/) from the [Gen3 Workloads](https://github.com/AustralianBioCommons/gen3-workloads.git) repository.
 
-2.  **Setting the Workload Repo**:
+2.  **Clone or Fork the Repository:** To get started, you can clone or fork this repository. If you fork it, make sure to keep your fork up-to-date with the upstream repository.
 
-    -   Define the `WORKLOAD_REPO` URL in the codebase for your workload configurations.
-    -   Set the `targetRevision` to match the desired branch or tag in the workload repository.
+          git clone https://AustralianBioCommons/gen3-eks-pipeline.git
 
-Example:
+          cd gen3-eks-pipeline
 
+2.  **Install Dependencies:** Navigate to the project directory and run the following command to install the required Node.js packages:
 
-
-`const WORKLOAD_REPO = "https://github.com/AustralianBioCommons/gen3-workloads.git";
-const targetRevision = "main";  // or specify a release tag`
-
-1.  **CodeStar Connection ARN**: Ensure that the correct CodeStar connection ARN is used to integrate GitHub with AWS. You'll need to replace the placeholder value with the actual ARN in the stack configuration.
+    `npm install`
 
 
+Usage
+-----
+### Forking the Repository and Configuring Environments
 
-`const codeStarConnectionArn = "arn:aws:codestar-connections:REGION:ACCOUNT_ID:connection/CONNECTION_ID";`
+1.  **Forking the Repository:** If you forked the repository, ensure that your changes align with the upstream configurations.
+
+2.  **Environment Configuration:** Environments are defined in `lib/config/environments/index.ts` and `lib/config/cluster/index.ts`. You can customize and define your own environments by modifying the existing configurations.
+
+    Each environment corresponds to stages in your deployment pipeline (e.g., UAT, Staging, Production).
+
+
 
 Adding/Removing Environments
 ----------------------------

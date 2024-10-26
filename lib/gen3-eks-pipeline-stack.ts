@@ -83,13 +83,20 @@ export class Gen3EksPipelineStack extends cdk.Stack {
             await gen3ClusterProvider(
               env.name,
               env.clusterName,
-              this.subnetsSelection(env.clusterSubnets!, "cluster"),
-              this.subnetsSelection(env.nodeGroupSubnets!, "nodes")
+              // The code now checks if env.clusterSubnets and env.nodeGroupSubnets are defined. 
+              // If they are, it calls this.subnetsSelection to create a subnet selection; 
+              // otherwise, it passes undefined to gen3ClusterProvider
+              env.clusterSubnets
+                ? this.subnetsSelection(env.clusterSubnets, "cluster")
+                : undefined,
+              env.nodeGroupSubnets
+                ? this.subnetsSelection(env.nodeGroupSubnets, "nodes")
+                : undefined
             )
           )
           .resourceProvider(
             blueprints.GlobalResources.Vpc,
-            new blueprints.VpcProvider(env.vpcId)
+            new blueprints.VpcProvider(env.vpcId || undefined)
           )
           .withEnv(env.aws),
         stageProps: {

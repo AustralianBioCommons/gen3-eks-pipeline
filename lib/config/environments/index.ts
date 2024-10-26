@@ -30,7 +30,7 @@ import { EnvironmentConfig } from "./config-interfaces";
 
 export const toolsRegion = "ap-southeast-2"
 
-// Project id, which can be used easily identify your stacks
+// Project id, which can be used to easily identify your stacks
 export const project = "cad"
 
 export interface Gen3Stage {
@@ -50,7 +50,7 @@ export const EksPipelineRepo = {
 
 // Function to retrieve the environment values
 export async function getStages() {
-  const envValues  = JSON.parse(await getAwsConfig(toolsRegion))
+  const envValues = JSON.parse(await getAwsConfig(toolsRegion));
 
   // Define environment stages
   const stages: Gen3Stage[] = [
@@ -59,21 +59,34 @@ export async function getStages() {
       env: envValues.uat,
       teams: [new TeamPlatform(envValues.uat)],
       externalSecret: new ExternalSecretsSa(envValues.uat),
-      addons: clusterConfig.uatClusterAddons,
+      addons: clusterConfig.createClusterAddons(
+            "uat",  // Env
+            envValues.uat.clusterName, // cluster name
+            "testing" //Workloads repo tag/branch
+  
+      ),
     },
     {
       id: "staging",
       env: envValues.staging,
       teams: [new TeamPlatform(envValues.staging)],
       externalSecret: new ExternalSecretsSa(envValues.staging),
-      addons: clusterConfig.stagingClusterAddons,
+      addons: clusterConfig.createClusterAddons(
+            "staging",
+            envValues.staging.clusterName,
+            "main" //Workloads repo tag/branch
+          )
     },
     {
       id: "prod",
       env: envValues.prod,
       teams: [new TeamPlatform(envValues.prod)],
       externalSecret: new ExternalSecretsSa(envValues.prod),
-      addons: clusterConfig.prodClusterAddons,
+      addons: clusterConfig.createClusterAddons(
+        "prod",
+        envValues.prod.clusterName,
+        "main" //Workloads repo tag/branch
+      ),
     },
   ];
 
