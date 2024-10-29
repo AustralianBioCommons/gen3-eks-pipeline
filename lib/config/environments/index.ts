@@ -39,7 +39,7 @@ export const toolsRegion = process.env.AWS_DEFAULT_REGION || process.env.AWS_REG
 export interface Gen3Stage {
   id: string;
   env: EnvironmentConfig;
-  teams: TeamPlatform[];
+  teams?: TeamPlatform[];
   externalSecret: ExternalSecretsSa;
   addons: Array<blueprints.ClusterAddOn>; 
 }
@@ -65,31 +65,35 @@ export async function getGithubRepoConfig(region: string) {
 }
 
 // Function to dynamically retrieve the stages from configuration
-export async function getStages(
-  region: string
-): Promise<Gen3Stage[]> {
+export async function getStages(region: string): Promise<Gen3Stage[]> {
   const envValuesString = await getAwsConfig("/gen3/config", region);
-  const envValues = JSON.parse(envValuesString)
+  const envValues = JSON.parse(envValuesString);
 
   const stages: Gen3Stage[] = [];
 
-  // If envValues are available, iterate over the environments
   for (const [envName, envConfig] of Object.entries(envValues)) {
     if (envName === "tools") continue;
 
     const typedEnvConfig = envConfig as EnvironmentConfig;
-    stages.push({
+
+    // Conditionally include teams only if platformRoleName is present
+    const stage: Gen3Stage = {
       id: envName,
       env: typedEnvConfig,
-      teams: [new TeamPlatform(typedEnvConfig)],
-      externalSecret: new ExternalSecretsSa(typedEnvConfig),
       addons: clusterConfig.createClusterAddons(
         envName,
         typedEnvConfig.clusterName,
-        "main",
+        typedEnvConfig.targetRevision,
         typedEnvConfig.workloadRepoUrl
       ),
-    });
+      externalSecret: new ExternalSecretsSa(typedEnvConfig),
+    };
+
+    if (typedEnvConfig.platformRoleName) {
+      stage.teams = [new TeamPlatform(typedEnvConfig)];
+    }
+
+    stages.push(stage);
   }
 
   return stages;

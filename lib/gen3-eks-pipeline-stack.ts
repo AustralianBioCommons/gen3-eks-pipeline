@@ -130,33 +130,41 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
     // Add stages dynamically
     for (const { id, env, teams, externalSecret, addons } of stages) {
-      pipelineStack.stage({
-        id: id,
-        stackBuilder: blueprint
-          .clone(region)
-          .name(env.clusterName)
-          .addOns(...addons)
-          .teams(...teams, externalSecret)
-          .clusterProvider(
-            await gen3ClusterProvider(
-              env.name,
-              env.clusterName,
-              // The code now checks if env.clusterSubnets and env.nodeGroupSubnets are defined.
+      const stageBuilder = blueprint
+        .clone(region)
+        .name(env.clusterName)
+        .addOns(...addons)
+        .clusterProvider(
+              // We check if env.clusterSubnets and env.nodeGroupSubnets are defined.
               // If they are, it calls this.subnetsSelection to create a subnet selection;
               // otherwise, it passes undefined to gen3ClusterProvider
-              env.clusterSubnets
-                ? this.subnetsSelection(env.clusterSubnets, "cluster")
-                : undefined,
-              env.nodeGroupSubnets
-                ? this.subnetsSelection(env.nodeGroupSubnets, "nodes")
-                : undefined
-            )
+          await gen3ClusterProvider(
+            env.name,
+            env.clusterName,
+            env.clusterSubnets
+              ? this.subnetsSelection(env.clusterSubnets, "cluster")
+              : undefined,
+            env.nodeGroupSubnets
+              ? this.subnetsSelection(env.nodeGroupSubnets, "nodes")
+              : undefined
           )
-          .resourceProvider(
-            blueprints.GlobalResources.Vpc,
-            new blueprints.VpcProvider(env.vpcId || undefined)
-          )
-          .withEnv(env.aws),
+        )
+        .resourceProvider(
+          blueprints.GlobalResources.Vpc,
+          new blueprints.VpcProvider(env.vpcId || undefined)
+        )
+        .withEnv(env.aws);
+
+      // Conditionally add teams only if platformRoleName is defined
+      if (teams) {
+        stageBuilder.teams(...teams, externalSecret);
+      } else {
+        stageBuilder.teams(externalSecret);
+      }
+
+      pipelineStack.stage({
+        id: id,
+        stackBuilder: stageBuilder,
         stageProps: {
           pre: [
             new blueprints.pipelines.cdkpipelines.ManualApprovalStep(

@@ -8,7 +8,7 @@ export interface EnvironmentConfig {
   name: string;
   clusterName: string;
   aws: AwsConfig;
-  platformRoleName: string;
+  platformRoleName?: string;
   vpcId: string;
   namespace: string;
   clusterSubnets?: string[];
