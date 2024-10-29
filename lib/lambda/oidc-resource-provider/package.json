@@ -1,0 +1,14 @@
+{
+  "name": "oidc-issuer-url",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-cloudformation": "^3.60.0",
+    "aws-lambda": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.112",
+    "aws-sdk": "^2.1691.0",
+    "aws-lambda": "^1.0.7"
+  }
+}

@@ -1,0 +1,64 @@
+name: Linting
+
+on: [pull_request]
+
+jobs:
+  codeLinting:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npx eslint ./lib ./bin
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        with:
+          fetch-depth: 0 
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Commitlint
+        run: npm install
+      - name: Validate all commits from PR
+        run: |
+          npx commitlint --from HEAD~${{ github.event.pull_request.commits }} --to HEAD --verbose
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Verify docs-only commits
+        run: |
+          # Check if the latest commit is a docs commit
+          if git log -1 --pretty=%B | grep -iq "^docs:"; then
+            echo "Checking if only markdown files are modified..."
+            # Get the list of modified files
+            CHANGED_FILES=$(git diff --name-only HEAD~1)
+            # Ensure all modified files are markdown files
+            NON_MD_FILES=$(echo "$CHANGED_FILES" | grep -vE "\.md$|\.MD$")
+            
+            if [ -n "$NON_MD_FILES" ]; then
+              echo "Error: 'docs:' commit contains non-markdown file changes:"
+              echo "$NON_MD_FILES"
+              exit 1
+            else
+              echo "Docs commit is valid."
+            fi
+          else
+            echo "Not a docs commit, skipping check."
+          fi
