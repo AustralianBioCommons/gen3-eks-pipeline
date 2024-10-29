@@ -80,6 +80,18 @@ Before starting the setup, ensure that the following parameters are stored in AW
             }
         }
 
+
+5.  **/gen3/eks-blueprint-repo**
+
+        {
+            "gitRepoOwner": "AustralianBioCommons",
+            "repoUrl": "gen3-eks-pipeline",
+            "tagRevision": "main"
+        }
+
+        replace gitRepoOwner with your org/user.
+
+        
 ### Secrets Manager Values
 
 1.  **ArgoCD Admin Password**
