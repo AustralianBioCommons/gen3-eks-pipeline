@@ -85,6 +85,8 @@ Environments are managed in the following parameter stores in the **tools accoun
 
 `/gen3/{env}/cluster-config` Autoscaling, disk, k8s version, etc
 
+`/gen3/eks-blueprint-repo` Github info for the fork of this repo [(see quick start guide)](docos/quick-start-guide.md)
+
 Please note that `tools` account is required in the configuration, it can be the same AWS account as workload for development purposes. This is where the pipeline is deployed.
 
 
