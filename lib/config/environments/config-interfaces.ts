@@ -48,7 +48,7 @@ export interface ClusterConfig {
 export interface RepoConfigBase {
   gitRepoOwner: string;
   repoUrl: string;
-  tagRevision: string;
+  targetRevision: string;
 }
 
 export type RepoConfig =
