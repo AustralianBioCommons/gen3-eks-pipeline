@@ -56,7 +56,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     let repositoryConfig: RepoConfig = {
       gitRepoOwner: eksPipelineRepoFromParameterStore.gitRepoOwner,
       repoUrl: eksPipelineRepoFromParameterStore.repoUrl,
-      tagRevision: eksPipelineRepoFromParameterStore.tagRevision,
+      targetRevision: eksPipelineRepoFromParameterStore.targetRevision,
       credentialsSecretName: "github-token",
     };
 
