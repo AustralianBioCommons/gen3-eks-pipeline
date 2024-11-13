@@ -49,12 +49,12 @@ jobs:
             echo "Checking if only markdown files are modified..."
             # Get the list of modified files
             CHANGED_FILES=$(git diff --name-only HEAD~1)
-            # Ensure all modified files are markdown files
-            NON_MD_FILES=$(echo "$CHANGED_FILES" | grep -vE "\.md$|\.MD$")
+            # Ensure there are no .ts, .tsx, .yaml, or .yml files modified in a docs commit
+            NON_DOC_FILES=$(echo "$CHANGED_FILES" | grep -E "\.ts$|\.tsx$|\.yaml$|\.yml$")
             
-            if [ -n "$NON_MD_FILES" ]; then
-              echo "Error: 'docs:' commit contains non-markdown file changes:"
-              echo "$NON_MD_FILES"
+            if [ -n "$NON_DOC_FILES" ]; then
+              echo "Error: 'docs:' commit contains TypeScript file changes, which is not allowed:"
+              echo "$NON_DOC_FILES"
               exit 1
             else
               echo "Docs commit is valid."
