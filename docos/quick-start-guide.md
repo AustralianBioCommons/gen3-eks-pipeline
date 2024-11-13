@@ -22,7 +22,7 @@ Before starting the setup, ensure that the following parameters are stored in AW
                 },
                 "vpcId": "",
                 "namespace": "cad",
-                "workloadRepoUrl": "git@github.com:AustralianBioCommons/gen3-workloads-example.git",
+                "workloadRepoUrl": "https://github.com/AustralianBioCommons/gen3-workloads-example.git",
                 "targetRevision": "main"
             },
             "tools": {
@@ -86,7 +86,7 @@ Before starting the setup, ensure that the following parameters are stored in AW
         {
             "gitRepoOwner": "AustralianBioCommons",
             "repoUrl": "gen3-eks-pipeline",
-            "tagRevision": "main"
+            "targetRevision": "main"
         }
 
         replace gitRepoOwner with your org/user.
@@ -126,6 +126,8 @@ Steps to Set Up the Environment
 
 
     `cdk deploy Gen3-Eks-pipeline-stack --require-approval never`
+    
+    `cdk deploy --all --require-approval never`
 
 4.  **Access ArgoCD** After the deployment, access ArgoCD by the ELB DNS name
 
