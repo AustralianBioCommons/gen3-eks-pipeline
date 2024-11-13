@@ -2,12 +2,11 @@ import {
   CodePipelineClient,
   StartPipelineExecutionCommand,
 } from "@aws-sdk/client-codepipeline";
-import { Context, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 const pipeline = new CodePipelineClient({});
 
 export const handler = async (
-  context: Context
 ): Promise<APIGatewayProxyResult> => {
   const pipelineName = process.env.PIPELINE_NAME;
 
@@ -19,8 +18,6 @@ export const handler = async (
       }),
     };
   }
-  // Just to suppres the lint error 'context' is defined but never used
-  console.log(`Remaining time (ms): ${context.getRemainingTimeInMillis()}`);
 
   try {
     const command = new StartPipelineExecutionCommand({
