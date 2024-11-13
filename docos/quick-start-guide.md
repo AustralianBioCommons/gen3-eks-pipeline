@@ -139,3 +139,9 @@ Steps to Set Up the Environment
 
 7. **Kubeconfig Command** For using `kubectl` See outputs of the cloudformation stack named {env}-{env}-blueprint, for this guide it would be dev-dev-blueprint.
 
+Accessing EKS Endpoints
+------------------------------
+By default, the EKS cluster is deployed with private endpoints, meaning `kubectl` access from the internet requires a VPN connection. However, for testing and demo purposes, you can manually enable public/private endpoints through the AWS Console. `Kubeconfig` details can be found in the Cloudformation stack outputs.
+
+
+![Enable Public and Private ](public-private-endpoint.png)
