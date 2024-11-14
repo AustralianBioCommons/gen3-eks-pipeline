@@ -23,7 +23,8 @@ Before starting the setup, ensure that the following parameters are stored in AW
                 "vpcId": "",
                 "namespace": "cad",
                 "workloadRepoUrl": "https://github.com/AustralianBioCommons/gen3-workloads-example.git",
-                "targetRevision": "main"
+                "targetRevision": "main",
+                "argocdServiceType": "LoadBalancer"
             },
             "tools": {
                 "name": "tools",

@@ -84,7 +84,8 @@ export async function getStages(region: string): Promise<Gen3Stage[]> {
         envName,
         typedEnvConfig.clusterName,
         typedEnvConfig.targetRevision,
-        typedEnvConfig.workloadRepoUrl
+        typedEnvConfig.workloadRepoUrl,
+        typedEnvConfig.argocdServiceType,
       ),
       externalSecret: new ExternalSecretsSa(typedEnvConfig),
     };
