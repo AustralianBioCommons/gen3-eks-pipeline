@@ -31,7 +31,8 @@ const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
 const argoCdAddon = (
   env: string,
   targetRevision: string,
-  workloadRepoUrl: string
+  workloadRepoUrl: string,
+  serviceType?: string
 ): blueprints.addons.ArgoCDAddOn =>
   new blueprints.addons.ArgoCDAddOn({
     adminPasswordSecretName: `${argocdCredentialName}-${env}`,
@@ -40,7 +41,7 @@ const argoCdAddon = (
     values: {
       server: {
         service: {
-          type: "NodePort",
+          type: serviceType || "NodePort",
         },
       },
       helm: {
@@ -68,7 +69,8 @@ export function createClusterAddons(
   env: string,
   clusterName: string,
   targetRevision: string,
-  workloadRepoUrl: string
+  workloadRepoUrl: string,
+  argocdServiceType?: string,
 ): Array<blueprints.ClusterAddOn> {
   return [
     new blueprints.addons.CloudWatchLogsAddon({
@@ -79,7 +81,7 @@ export function createClusterAddons(
       logRetentionDays: 90,
     }),
     externalSecretAddon(),
-    argoCdAddon(env, targetRevision, workloadRepoUrl),
+    argoCdAddon(env, targetRevision, workloadRepoUrl, argocdServiceType),
   ];
 }
 

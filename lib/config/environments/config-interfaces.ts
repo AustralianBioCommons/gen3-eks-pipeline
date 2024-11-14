@@ -15,6 +15,7 @@ export interface EnvironmentConfig {
   nodeGroupSubnets?: string[];
   workloadRepoUrl: string;
   targetRevision: string;
+  argocdServiceType?: string;
 }
 
 export interface Config {
