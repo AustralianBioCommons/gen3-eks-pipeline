@@ -47,7 +47,7 @@ export class Gen3ConfigEventsStack extends cdk.Stack {
           new iam.PolicyStatement({
             actions: ["codepipeline:StartPipelineExecution"],
             resources: [
-              `arn:aws:codepipeline:${props?.env.region}:${props?.env.account}:gen3-eks-${environments.tools.name}`,
+              `arn:aws:codepipeline:${this.region}:${this.account}:gen3-eks-${environments.tools.name}`,
             ],
           })
         );
