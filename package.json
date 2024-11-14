@@ -1,6 +1,6 @@
 {
   "name": "gen3-eks-pipeline",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "bin": {
     "gen3-eks-pipeline": "bin/gen3-eks-pipeline.js"
   },

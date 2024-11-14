@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.0.2...v1.1.0) (2024-11-14)
+
+
+### Features
+
+* argocd service type ([8697e94](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/8697e94312ec4d1c1c3f069c384eda7b2be5f8e0))
+
 ## [1.0.2](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.0.1...v1.0.2) (2024-11-14)
 
 
