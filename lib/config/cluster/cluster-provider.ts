@@ -42,7 +42,24 @@ export async function gen3ClusterProvider(
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
         amiReleaseVersion: clusterConfig.amiReleaseVersion,
         nodeGroupSubnets: nodeGroupSubnets || undefined,
-        tags: clusterConfig.tags,
+        tags: {
+          
+        },
+      },
+      {
+        id: `mng-${env}-1`,
+        minSize: clusterConfig.minSize,
+        maxSize: clusterConfig.maxSize,
+        desiredSize: clusterConfig.desiredSize,
+        diskSize: clusterConfig.diskSize,
+        instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
+        amiType: NodegroupAmiType.AL2_X86_64,
+        nodeGroupCapacityType: CapacityType.ON_DEMAND,
+        amiReleaseVersion: clusterConfig.amiReleaseVersion,
+        nodeGroupSubnets: nodeGroupSubnets || undefined,
+        launchTemplate: {
+          tags: clusterConfig.tags,
+        },
       },
     ],
   });
