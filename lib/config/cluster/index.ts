@@ -46,6 +46,11 @@ const argoCdAddon = (
       helm: {
         valueFiles: ["values.yaml", "gen3-values.yaml"],
       },
+      configs: {
+        cm: {
+          create: false
+        }
+      }
     },
   });
 
