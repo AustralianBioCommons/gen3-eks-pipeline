@@ -20,7 +20,7 @@ export async function gen3ClusterProvider(
 ) {
   const clusterConfig = await getClusterConfig(env, toolsRegion);
 
-  console.log(clusterConfig)
+  //console.log(clusterConfig)
 
   const versionString = clusterConfig["version"];
   const version = getKubernetesVersion(versionString);
@@ -36,7 +36,6 @@ export async function gen3ClusterProvider(
         minSize: clusterConfig.minSize,
         maxSize: clusterConfig.maxSize,
         desiredSize: clusterConfig.desiredSize,
-        diskSize: clusterConfig.diskSize,
         instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
         amiType: NodegroupAmiType.AL2_X86_64,
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
@@ -44,6 +43,15 @@ export async function gen3ClusterProvider(
         nodeGroupSubnets: nodeGroupSubnets || undefined,
         launchTemplate: {
           tags: clusterConfig.tags,
+          blockDevices: [
+            {
+              deviceName: "/dev/xvda",
+              volume: ec2.BlockDeviceVolume.ebs(
+                clusterConfig.diskSize, {
+                volumeType: ec2.EbsDeviceVolumeType.GP3,
+              }),
+            },
+          ],
         },
       },
     ],

@@ -190,20 +190,6 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       oidcStacks.push(oidcStack);
     }
 
-    // Loop through stages to add IAM Role Stacks with dependencies on OIDC stacks
-    for (const { env } of stages) {
-      // Find the matching oidcStack based on the environment
-      const oidcStack = oidcStacks.find((stack) => stack.env === env.aws);
-
-      if (oidcStack) {
-        // Pass the specific oidcStack as an argument to addIamRoleStack
-        const iamRoleStack = this.addIamRoleStack(scope, env, oidcStack);
-        iamRoleStack.node.addDependency(oidcStack);
-      } else {
-        console.warn(`No OIDC issuer stack found for environment: ${env.aws}`);
-      }
-    }
-
     // Event Bus stacks for each each environment
     // account is the source (tools) account here
     this.addEventBusStack(scope, envValues);
@@ -218,18 +204,6 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     return subnetsSelection;
   }
 
-  private addIamRoleStack(scope: Construct, buildEnv: EnvironmentConfig, oidcIssuerStack: OidcIssuerStack) {
-    const iamRoleStack = new IamRolesStack(
-      scope,
-      `${buildEnv.clusterName}-IamRoles`,
-      {
-        env: buildEnv.aws,
-        buildEnv: buildEnv,
-        oidcIssuerStack
-      }
-    );
-    return iamRoleStack; // Return the created stack for dependency management
-  }
 
   private addEventBusStack(scope: Construct, envConfigs: Config) {
     new Gen3ConfigEventsStack(scope, `gen3-eventBus-stack`, {

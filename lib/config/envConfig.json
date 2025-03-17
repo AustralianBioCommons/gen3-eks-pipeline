@@ -1,18 +1,27 @@
 {
-    "dev": {
-      "name": "dev",
-      "clusterName": "Gen3-Eks-pipeline-cad-uat",
+    "test": {
+      "name": "test",
+      "clusterName": "Gen3-Eks-pipeline-omix3-test",
       "aws": {
         "account": "232870232581",
         "region": "ap-southeast-2"
       },
       "platformRoleName": "AWSReservedSSO_AWSAdministratorAccess",
-      "vpcId": "vpc-0fa38629c27c164c9",
-      "namespace": "cad",
-      "clusterSubnets": ["subnet-061838256868e03f3", "subnet-02b583fa09844324b"],
-      "nodeGroupSubnets": ["subnet-061838256868e03f3", "subnet-02b583fa09844324b"],
-      "workloadRepoUrl": "https://github.com/AustralianBioCommons/gen3-workloads.git",
-      "targetRevision": "testing"
+      "vpcId": "vpc-09e24be072f1a1d3d",
+      "namespace": "omix3",
+      "clusterSubnets": ["subnet-0dd0b3a622d5ae1df", "subnet-05464e0d06dd9ffbe", "subnet-0af143a275d022867"],
+      "nodeGroupSubnets": ["subnet-0dd0b3a622d5ae1df", "subnet-05464e0d06dd9ffbe", "subnet-0af143a275d022867"],
+      "workloadRepoUrl": "https://github.com/AustralianBioCommons/omix3-gen3-workloads.git",
+      "targetRevision": "main"
+    },
+
+    "tools": {
+        "name": "tools",
+        "clusterName": "",
+        "aws": {
+          "account": "820242927126",
+          "region": "ap-southeast-2"
+        }
     }
   }
   
