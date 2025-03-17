@@ -42,7 +42,9 @@ export async function gen3ClusterProvider(
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
         amiReleaseVersion: clusterConfig.amiReleaseVersion,
         nodeGroupSubnets: nodeGroupSubnets || undefined,
-        tags: clusterConfig.tags,
+        launchTemplate: {
+          tags: clusterConfig.tags,
+        },
       },
     ],
   });
@@ -66,8 +68,10 @@ async function getClusterConfig(env: string, region: string) {
 }
 
 // Function to map version string to KubernetesVersion enum
-function getKubernetesVersion(version: string): KubernetesVersion {
+export function getKubernetesVersion(version: string): KubernetesVersion {
   switch (version) {
+    case "1.31":
+      return KubernetesVersion.V1_31;
     case "1.30":
       return KubernetesVersion.V1_30;
     case "1.29":

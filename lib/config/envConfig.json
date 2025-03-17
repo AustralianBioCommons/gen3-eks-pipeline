@@ -1,0 +1,18 @@
+{
+    "dev": {
+      "name": "dev",
+      "clusterName": "Gen3-Eks-pipeline-cad-uat",
+      "aws": {
+        "account": "232870232581",
+        "region": "ap-southeast-2"
+      },
+      "platformRoleName": "AWSReservedSSO_AWSAdministratorAccess",
+      "vpcId": "vpc-0fa38629c27c164c9",
+      "namespace": "cad",
+      "clusterSubnets": ["subnet-061838256868e03f3", "subnet-02b583fa09844324b"],
+      "nodeGroupSubnets": ["subnet-061838256868e03f3", "subnet-02b583fa09844324b"],
+      "workloadRepoUrl": "https://github.com/AustralianBioCommons/gen3-workloads.git",
+      "targetRevision": "testing"
+    }
+  }
+  
