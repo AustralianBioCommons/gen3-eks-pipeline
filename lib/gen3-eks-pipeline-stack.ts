@@ -27,6 +27,8 @@ import {
 } from "./config/environments/config-interfaces";
 import { Gen3ConfigEventsStack } from "./gen3-config-events-stack";
 import { OidcIssuerStack } from "./oidc-issuer-stack";
+import { OidcIssuerAddOn } from "./oidc-issuer-addon";
+import { IamRolesAddOn } from "./iam-roles-addon";
 
 
 export class Gen3EksPipelineStack extends cdk.Stack {
@@ -130,14 +132,22 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
     // Add stages dynamically
     for (const { id, env, teams, externalSecret, addons } of stages) {
+      const issuerAddon = new OidcIssuerAddOn(
+        env.namespace,
+        `/gen3/${env.namespace}-${env.name}/oidcIssuer`
+      );
       const stageBuilder = blueprint
         .clone(region)
         .name(env.clusterName)
-        .addOns(...addons)
+        .addOns(
+          ...addons,
+          issuerAddon,
+          new IamRolesAddOn(env.name, env.namespace)
+        )
         .clusterProvider(
-              // We check if env.clusterSubnets and env.nodeGroupSubnets are defined.
-              // If they are, it calls this.subnetsSelection to create a subnet selection;
-              // otherwise, it passes undefined to gen3ClusterProvider
+          // We check if env.clusterSubnets and env.nodeGroupSubnets are defined.
+          // If they are, it calls this.subnetsSelection to create a subnet selection;
+          // otherwise, it passes undefined to gen3ClusterProvider
           await gen3ClusterProvider(
             env.name,
             env.clusterName,
@@ -177,18 +187,6 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
     pipelineStack.build(scope, `${id}-stack`, { env: envValues.tools.aws });
 
-    // Add OIDC Issuer Stack for each environment before IAM Roles
-    const oidcStacks: OidcIssuerStack[] = [];
-    for (const { env } of stages) {
-      const oidcStack = this.addOidcIssuerStack(
-        scope,
-        env.aws,
-        env.clusterName,
-        env.namespace, // Ensure that your env has a namespace property
-        `/gen3/${env.name}/oidcIssuer`
-      );
-      oidcStacks.push(oidcStack);
-    }
 
     // Event Bus stacks for each each environment
     // account is the source (tools) account here
@@ -210,21 +208,5 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       env: { region: toolsRegion, account: this.account },
       envConfigs,
     });
-  }
-
-  private addOidcIssuerStack(
-    scope: Construct,
-    env: cdk.Environment,
-    clusterName: string,
-    namespace: string,
-    oidcIssuerParameter: string
-  ) {
-    const oidcStack = new OidcIssuerStack(scope, `${clusterName}OidcIssuerStack`, {
-      env,
-      clusterName,
-      namespace,
-      oidcIssuerParameter,
-    });
-    return oidcStack; // Return the created stack for dependency management
   }
 }
