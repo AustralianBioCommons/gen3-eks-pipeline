@@ -77,17 +77,10 @@ async function getClusterConfig(env: string, region: string) {
 
 // Function to map version string to KubernetesVersion enum
 export function getKubernetesVersion(version: string): KubernetesVersion {
-  switch (version) {
-    case "1.31":
-      return KubernetesVersion.V1_31;
-    case "1.30":
-      return KubernetesVersion.V1_30;
-    case "1.29":
-      return KubernetesVersion.V1_29;
-    case "1.28":
-      return KubernetesVersion.V1_28;
-    // Add more cases as needed
-    default:
-      throw new Error(`Unsupported Kubernetes version: ${version}`);
+  try {
+    return KubernetesVersion.of(version);
+  } catch (error) {
+    throw new Error(`Unsupported Kubernetes version: ${version}`);
   }
 }
+
