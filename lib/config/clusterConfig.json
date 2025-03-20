@@ -1,6 +1,6 @@
 {
     "clusters": {
-        "dev": 
+        "test": 
         {
             "version":"1.31",
             "minSize":0,
@@ -10,8 +10,8 @@
             "amiReleaseVersion":"1.31.5-20250304",
             "instanceType":"m5.2xlarge",
             "tags":{
-               "Name":"GEN3 Cluster",
-               "Type":"ACDC",
+               "Name":"OMIX3 GEN3 Cluster",
+               "Type":"OMIX3",
                "ENV":"test"
             }
          }

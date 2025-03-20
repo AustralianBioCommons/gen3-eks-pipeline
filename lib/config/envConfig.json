@@ -2,6 +2,8 @@
     "test": {
       "name": "test",
       "clusterName": "Gen3-Eks-pipeline-omix3-test",
+      "project": "omix3",
+      "hostname": "omix3.test.biocommons.org.au",
       "aws": {
         "account": "232870232581",
         "region": "ap-southeast-2"
