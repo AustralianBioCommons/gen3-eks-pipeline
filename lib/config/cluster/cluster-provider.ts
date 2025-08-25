@@ -22,7 +22,7 @@ export async function gen3ClusterProvider(
 ) {
   const clusterConfig = await getClusterConfig(env, toolsRegion);
 
-  console.log(clusterConfig);
+  //console.log(clusterConfig)
 
   const versionString = clusterConfig["version"];
   const version = getKubernetesVersion(versionString);
@@ -38,7 +38,6 @@ export async function gen3ClusterProvider(
         minSize: clusterConfig.minSize,
         maxSize: clusterConfig.maxSize,
         desiredSize: clusterConfig.desiredSize,
-        diskSize: clusterConfig.diskSize,
         instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
         amiType: NodegroupAmiType.AL2_X86_64,
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
@@ -90,6 +89,7 @@ async function getClusterConfig(env: string, region: string) {
 }
 
 // Function to map version string to KubernetesVersion enum
+
 function getKubernetesVersion(version: string): KubernetesVersion {
   switch (version) {
     case "1.33":
@@ -109,3 +109,4 @@ function getKubernetesVersion(version: string): KubernetesVersion {
       throw new Error(`Unsupported Kubernetes version: ${version}`);
   }
 }
+
