@@ -135,7 +135,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     for (const { id, env, teams, externalSecret, addons } of stages) {
 
       new ssm.StringParameter(this, `${env.name}-gen3Hostname`, {
-        parameterName: `/gen3/${env.project || env.name} /${env.name}/hostname`,
+        parameterName: `/gen3/${env.project || env.name}/${env.name}/hostname`,
         stringValue: env.hostname || 'gen3 hostname',
       });
 
@@ -144,6 +144,23 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         `/gen3/${env.namespace}-${env.name}/oidcIssuer`,
         env.aws
       );
+
+      const ssmParam = `/gen3/${env.name}/cluster-config`;
+      // (A) Preflight validator - read & check SSM JSON
+      const preflight = new blueprints.cdkpipelines.ShellStep("preflight-ssm", {
+        commands: [
+          // read param
+          `RAW=$(aws ssm get-parameter --name "${ssmParam}" --with-decryption --query 'Parameter.Value' --output text)`,
+          `echo "$RAW" > cfg.json`,
+          // validate in node (no jq dependency)
+          `node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('cfg.json','utf8'));\
+          if(!c.version) throw new Error('Missing version');\
+          if(!c.amiReleaseVersion) throw new Error('Missing amiReleaseVersion');\
+          if(c.diskSize===undefined) throw new Error('Missing diskSize');\
+          console.log('Preflight OK:', c.version, c.amiReleaseVersion, c.diskSize);"`
+        ],
+        primaryOutputDirectory: ".", // so logs are surfaced
+      });
       const stageBuilder = blueprint
         .clone(region)
         .name(env.clusterName)
@@ -185,6 +202,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         stackBuilder: stageBuilder,
         stageProps: {
           pre: [
+            preflight,
             new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
               "manual-approval"
             ),

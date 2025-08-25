@@ -42,31 +42,32 @@ export async function gen3ClusterProvider(
         amiType: NodegroupAmiType.AL2_X86_64,
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
         amiReleaseVersion: clusterConfig.amiReleaseVersion,
+        diskSize: clusterConfig.diskSize, 
         nodeGroupSubnets: nodeGroupSubnets || undefined,
-        tags: {},
+        tags: clusterConfig.tags ?? {},
       },
-      {
-        id: `mng-${env}-1`,
-        minSize: clusterConfig.minSize,
-        maxSize: clusterConfig.maxSize,
-        desiredSize: clusterConfig.desiredSize,
-        instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
-        amiType: NodegroupAmiType.AL2_X86_64,
-        nodeGroupCapacityType: CapacityType.ON_DEMAND,
-        amiReleaseVersion: clusterConfig.amiReleaseVersion,
-        nodeGroupSubnets: nodeGroupSubnets || undefined,
-        launchTemplate: {
-          blockDevices: [
-            {
-              deviceName: "/dev/xvda",
-              volume: ec2.BlockDeviceVolume.ebs(clusterConfig.diskSize, {
-                encrypted: false,
-              }),
-            },
-          ],
-        },
-        tags: clusterConfig.tags
-      },
+      // {
+      //   id: `mng-${env}-1`,
+      //   minSize: clusterConfig.minSize,
+      //   maxSize: clusterConfig.maxSize,
+      //   desiredSize: clusterConfig.desiredSize,
+      //   instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
+      //   amiType: NodegroupAmiType.AL2_X86_64,
+      //   nodeGroupCapacityType: CapacityType.ON_DEMAND,
+      //   amiReleaseVersion: clusterConfig.amiReleaseVersion,
+      //   nodeGroupSubnets: nodeGroupSubnets || undefined,
+      //   launchTemplate: {
+      //     blockDevices: [
+      //       {
+      //         deviceName: "/dev/xvda",
+      //         volume: ec2.BlockDeviceVolume.ebs(clusterConfig.diskSize, {
+      //           encrypted: false,
+      //         }),
+      //       },
+      //     ],
+      //   },
+      //   tags: clusterConfig.tags
+      // },
     ],
   });
 }
@@ -90,7 +91,7 @@ async function getClusterConfig(env: string, region: string) {
 
 // Function to map version string to KubernetesVersion enum
 
-function getKubernetesVersion(version: string): KubernetesVersion {
+export function getKubernetesVersion(version: string): KubernetesVersion {
   switch (version) {
     case "1.33":
       return KubernetesVersion.V1_33;

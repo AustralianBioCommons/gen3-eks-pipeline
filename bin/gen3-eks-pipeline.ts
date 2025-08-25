@@ -23,10 +23,9 @@ if (usePipeline) {
       region: process.env.CDK_DEFAULT_REGION,
     },
     envName: "tools",
-    project: "OMIX3",
   };
   console.log(`🚀 Deploying EKS with CI/CD Pipeline...`);
-  new Gen3EksPipelineStack().buildAsync(app, `Gen3-Eks-Pipeline-omix3`, props);
+  new Gen3EksPipelineStack().buildAsync(app, `Gen3-Eks-Pipeline-cad`, props);
 } else {
   // Get environment from context or default to "uat"
   const envName = app.node.tryGetContext("envName") || "uat";
@@ -39,7 +38,7 @@ if (usePipeline) {
       region: envConfig.aws.region,
     },
     envName,
-    project: "OMIX3",
+    project: "cad",
   };
   console.log(`🚀 Deploying EKS without Pipeline for environment: ${envName}...`);
   new Gen3EksBlueprintsStack(app, `Gen3-Eks-Blueprint-${envName}`, props);

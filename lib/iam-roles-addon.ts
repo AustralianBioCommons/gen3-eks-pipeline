@@ -106,12 +106,14 @@ export class IamRolesAddOn implements blueprints.ClusterAddOn {
     region: string
   ): Promise<PermissionsConfig> {
     const ssmClient = new SSMClient({ region });
+    console.log(this.permissionsConfigParameter);
     const command = new GetParameterCommand({
       Name: this.permissionsConfigParameter,
       WithDecryption: true,
     });
 
     const response = await ssmClient.send(command);
+    console.log(response);
     const parameterValue = response.Parameter?.Value;
     if (!parameterValue) {
       throw new Error(
