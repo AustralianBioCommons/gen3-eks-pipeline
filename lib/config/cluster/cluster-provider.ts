@@ -8,6 +8,8 @@ import {
 } from "aws-cdk-lib/aws-eks";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import { toolsRegion } from "../environments";
+import { Construct } from "constructs";
+
 
 
 
@@ -41,18 +43,29 @@ export async function gen3ClusterProvider(
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
         amiReleaseVersion: clusterConfig.amiReleaseVersion,
         nodeGroupSubnets: nodeGroupSubnets || undefined,
+        tags: {},
+      },
+      {
+        id: `mng-${env}-1`,
+        minSize: clusterConfig.minSize,
+        maxSize: clusterConfig.maxSize,
+        desiredSize: clusterConfig.desiredSize,
+        instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
+        amiType: NodegroupAmiType.AL2_X86_64,
+        nodeGroupCapacityType: CapacityType.ON_DEMAND,
+        amiReleaseVersion: clusterConfig.amiReleaseVersion,
+        nodeGroupSubnets: nodeGroupSubnets || undefined,
         launchTemplate: {
-          tags: clusterConfig.tags,
           blockDevices: [
             {
               deviceName: "/dev/xvda",
-              volume: ec2.BlockDeviceVolume.ebs(
-                clusterConfig.diskSize, {
-                volumeType: ec2.EbsDeviceVolumeType.GP3,
+              volume: ec2.BlockDeviceVolume.ebs(clusterConfig.diskSize, {
+                encrypted: false,
               }),
             },
           ],
         },
+        tags: clusterConfig.tags
       },
     ],
   });
@@ -76,11 +89,24 @@ async function getClusterConfig(env: string, region: string) {
 }
 
 // Function to map version string to KubernetesVersion enum
-export function getKubernetesVersion(version: string): KubernetesVersion {
-  try {
-    return KubernetesVersion.of(version);
-  } catch (error) {
-    throw new Error(`Unsupported Kubernetes version: ${version}`);
+
+function getKubernetesVersion(version: string): KubernetesVersion {
+  switch (version) {
+    case "1.33":
+      return KubernetesVersion.V1_33;
+    case "1.32":
+      return KubernetesVersion.V1_32;
+    case "1.31":
+      return KubernetesVersion.V1_31;
+    case "1.30":
+      return KubernetesVersion.V1_30;
+    case "1.29":
+      return KubernetesVersion.V1_29;
+    case "1.28":
+      return KubernetesVersion.V1_28;
+    // Add more cases as needed
+    default:
+      throw new Error(`Unsupported Kubernetes version: ${version}`);
   }
 }
 
