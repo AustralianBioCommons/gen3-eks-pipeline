@@ -48,7 +48,6 @@ const argoCdAddon = (
           type: serviceType || "NodePort",
         },
       },
-      configs: { cm: { "timeout.reconciliation": "45s" } },
       notifications: { enabled: true, livenessProbe: { enabled: true }, readinessProbe: { enabled: true } },
       commitServer: { enabled: true },
       helm: {
