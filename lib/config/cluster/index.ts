@@ -49,7 +49,7 @@ const argoCdAddon = (
         },
       },
       notifications: { enabled: true, livenessProbe: { enabled: true }, readinessProbe: { enabled: true } },
-      commitServer: { enabled: true },
+      commitServer: { enabled: false },
       helm: {
         valueFiles: ["values.yaml", "gen3-values.yaml"],
       },
