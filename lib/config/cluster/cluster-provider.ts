@@ -8,6 +8,8 @@ import {
 } from "aws-cdk-lib/aws-eks";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import { toolsRegion } from "../environments";
+import { Construct } from "constructs";
+
 
 
 
@@ -20,7 +22,7 @@ export async function gen3ClusterProvider(
 ) {
   const clusterConfig = await getClusterConfig(env, toolsRegion);
 
-  console.log(clusterConfig)
+  //console.log(clusterConfig)
 
   const versionString = clusterConfig["version"];
   const version = getKubernetesVersion(versionString);
@@ -32,25 +34,47 @@ export async function gen3ClusterProvider(
     vpcSubnets: vpcSubnets ? [vpcSubnets] : undefined,
     managedNodeGroups: [
       {
-        id: `mng-${env}`,
+        id: `mng-${env.toLowerCase()}`,
         minSize: clusterConfig.minSize,
         maxSize: clusterConfig.maxSize,
         desiredSize: clusterConfig.desiredSize,
-        diskSize: clusterConfig.diskSize,
         instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
         amiType: NodegroupAmiType.AL2_X86_64,
         nodeGroupCapacityType: CapacityType.ON_DEMAND,
         amiReleaseVersion: clusterConfig.amiReleaseVersion,
+        diskSize: clusterConfig.diskSize, 
         nodeGroupSubnets: nodeGroupSubnets || undefined,
-        tags: clusterConfig.tags,
+        tags: clusterConfig.tags ?? {},
       },
+      // {
+      //   id: `mng-${env}-1`,
+      //   minSize: clusterConfig.minSize,
+      //   maxSize: clusterConfig.maxSize,
+      //   desiredSize: clusterConfig.desiredSize,
+      //   instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
+      //   amiType: NodegroupAmiType.AL2_X86_64,
+      //   nodeGroupCapacityType: CapacityType.ON_DEMAND,
+      //   amiReleaseVersion: clusterConfig.amiReleaseVersion,
+      //   nodeGroupSubnets: nodeGroupSubnets || undefined,
+      //   launchTemplate: {
+      //     blockDevices: [
+      //       {
+      //         deviceName: "/dev/xvda",
+      //         volume: ec2.BlockDeviceVolume.ebs(clusterConfig.diskSize, {
+      //           encrypted: false,
+      //         }),
+      //       },
+      //     ],
+      //   },
+      //   tags: clusterConfig.tags
+      // },
     ],
   });
 }
 
 // Function to retrieve cluster configuration from Parameter Store
 async function getClusterConfig(env: string, region: string) {
-  const paramName = `/gen3/${env}/cluster-config`; 
+  const paramName = `/gen3/${env.toLowerCase()}/cluster-config`; 
   const ssmClient = new SSMClient({ region });
   const command = new GetParameterCommand({
     Name: paramName,
@@ -66,8 +90,15 @@ async function getClusterConfig(env: string, region: string) {
 }
 
 // Function to map version string to KubernetesVersion enum
-function getKubernetesVersion(version: string): KubernetesVersion {
+
+export function getKubernetesVersion(version: string): KubernetesVersion {
   switch (version) {
+    case "1.33":
+      return KubernetesVersion.V1_33;
+    case "1.32":
+      return KubernetesVersion.V1_32;
+    case "1.31":
+      return KubernetesVersion.V1_31;
     case "1.30":
       return KubernetesVersion.V1_30;
     case "1.29":
@@ -79,3 +110,4 @@ function getKubernetesVersion(version: string): KubernetesVersion {
       throw new Error(`Unsupported Kubernetes version: ${version}`);
   }
 }
+

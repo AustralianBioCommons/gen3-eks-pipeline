@@ -11,6 +11,8 @@ export interface EnvironmentConfig {
   platformRoleName?: string;
   vpcId: string;
   namespace: string;
+  project: string;
+  hostname: string;
   clusterSubnets?: string[];
   nodeGroupSubnets?: string[];
   workloadRepoUrl: string;

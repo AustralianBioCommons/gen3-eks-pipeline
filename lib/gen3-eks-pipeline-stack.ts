@@ -5,6 +5,7 @@ import {
   validateSecret,
 } from "@aws-quickstart/eks-blueprints/dist/utils/secrets-manager-utils";
 import * as cdk from "aws-cdk-lib";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import {
   getGithubRepoConfig,
@@ -27,6 +28,8 @@ import {
 } from "./config/environments/config-interfaces";
 import { Gen3ConfigEventsStack } from "./gen3-config-events-stack";
 import { OidcIssuerStack } from "./oidc-issuer-stack";
+import { OidcIssuerAddOn } from "./oidc-issuer-addon";
+import { IamRolesAddOn } from "./iam-roles-addon";
 
 
 export class Gen3EksPipelineStack extends cdk.Stack {
@@ -130,14 +133,46 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
     // Add stages dynamically
     for (const { id, env, teams, externalSecret, addons } of stages) {
+
+      new ssm.StringParameter(this, `${env.name}-gen3Hostname`, {
+        parameterName: `/gen3/${env.project || env.name}/${env.name}/hostname`,
+        stringValue: env.hostname || 'gen3 hostname',
+      });
+
+      const issuerAddon = new OidcIssuerAddOn(
+        env.namespace,
+        `/gen3/${env.namespace}-${env.name}/oidcIssuer`,
+        env.aws
+      );
+
+      const ssmParam = `/gen3/${env.name}/cluster-config`;
+      // (A) Preflight validator - read & check SSM JSON
+      const preflight = new blueprints.cdkpipelines.ShellStep("preflight-ssm", {
+        commands: [
+          // read param
+          `RAW=$(aws ssm get-parameter --name "${ssmParam}" --with-decryption --query 'Parameter.Value' --output text)`,
+          `echo "$RAW" > cfg.json`,
+          // validate in node (no jq dependency)
+          `node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('cfg.json','utf8'));\
+          if(!c.version) throw new Error('Missing version');\
+          if(!c.amiReleaseVersion) throw new Error('Missing amiReleaseVersion');\
+          if(c.diskSize===undefined) throw new Error('Missing diskSize');\
+          console.log('Preflight OK:', c.version, c.amiReleaseVersion, c.diskSize);"`
+        ],
+        primaryOutputDirectory: ".", // so logs are surfaced
+      });
       const stageBuilder = blueprint
         .clone(region)
         .name(env.clusterName)
-        .addOns(...addons)
+        .addOns(
+          ...addons,
+          issuerAddon,
+          new IamRolesAddOn(env.name, env.namespace)
+        )
         .clusterProvider(
-              // We check if env.clusterSubnets and env.nodeGroupSubnets are defined.
-              // If they are, it calls this.subnetsSelection to create a subnet selection;
-              // otherwise, it passes undefined to gen3ClusterProvider
+          // We check if env.clusterSubnets and env.nodeGroupSubnets are defined.
+          // If they are, it calls this.subnetsSelection to create a subnet selection;
+          // otherwise, it passes undefined to gen3ClusterProvider
           await gen3ClusterProvider(
             env.name,
             env.clusterName,
@@ -167,6 +202,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         stackBuilder: stageBuilder,
         stageProps: {
           pre: [
+            preflight,
             new blueprints.pipelines.cdkpipelines.ManualApprovalStep(
               "manual-approval"
             ),
@@ -177,32 +213,6 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
     pipelineStack.build(scope, `${id}-stack`, { env: envValues.tools.aws });
 
-    // Add OIDC Issuer Stack for each environment before IAM Roles
-    const oidcStacks: OidcIssuerStack[] = [];
-    for (const { env } of stages) {
-      const oidcStack = this.addOidcIssuerStack(
-        scope,
-        env.aws,
-        env.clusterName,
-        env.namespace, // Ensure that your env has a namespace property
-        `/gen3/${env.name}/oidcIssuer`
-      );
-      oidcStacks.push(oidcStack);
-    }
-
-    // Loop through stages to add IAM Role Stacks with dependencies on OIDC stacks
-    for (const { env } of stages) {
-      // Find the matching oidcStack based on the environment
-      const oidcStack = oidcStacks.find((stack) => stack.env === env.aws);
-
-      if (oidcStack) {
-        // Pass the specific oidcStack as an argument to addIamRoleStack
-        const iamRoleStack = this.addIamRoleStack(scope, env, oidcStack);
-        iamRoleStack.node.addDependency(oidcStack);
-      } else {
-        console.warn(`No OIDC issuer stack found for environment: ${env.aws}`);
-      }
-    }
 
     // Event Bus stacks for each each environment
     // account is the source (tools) account here
@@ -218,39 +228,11 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     return subnetsSelection;
   }
 
-  private addIamRoleStack(scope: Construct, buildEnv: EnvironmentConfig, oidcIssuerStack: OidcIssuerStack) {
-    const iamRoleStack = new IamRolesStack(
-      scope,
-      `${buildEnv.clusterName}-IamRoles`,
-      {
-        env: buildEnv.aws,
-        buildEnv: buildEnv,
-        oidcIssuerStack
-      }
-    );
-    return iamRoleStack; // Return the created stack for dependency management
-  }
 
   private addEventBusStack(scope: Construct, envConfigs: Config) {
     new Gen3ConfigEventsStack(scope, `gen3-eventBus-stack`, {
       env: { region: toolsRegion, account: this.account },
       envConfigs,
     });
-  }
-
-  private addOidcIssuerStack(
-    scope: Construct,
-    env: cdk.Environment,
-    clusterName: string,
-    namespace: string,
-    oidcIssuerParameter: string
-  ) {
-    const oidcStack = new OidcIssuerStack(scope, `${clusterName}OidcIssuerStack`, {
-      env,
-      clusterName,
-      namespace,
-      oidcIssuerParameter,
-    });
-    return oidcStack; // Return the created stack for dependency management
   }
 }

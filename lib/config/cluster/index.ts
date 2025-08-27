@@ -14,7 +14,7 @@ const bootstrapRepo = (
   credentialsSecretName: "gen3-argocd",
   credentialsType: "TOKEN",
   targetRevision: targetRevision,
-  path: `environments/${env}`,
+  path: `environments/${env.toLowerCase()}`,
 });
 
 // Function to create the external secrets add-on configuration
@@ -35,7 +35,7 @@ const argoCdAddon = (
   serviceType?: string
 ): blueprints.addons.ArgoCDAddOn =>
   new blueprints.addons.ArgoCDAddOn({
-    adminPasswordSecretName: `${argocdCredentialName}-${env}`,
+    adminPasswordSecretName: `${argocdCredentialName}-${env.toLowerCase()}`,
     name: `${env}Gen3Cluster`,
     bootstrapRepo: bootstrapRepo(env, targetRevision, workloadRepoUrl),
     values: {
@@ -77,7 +77,7 @@ export function createClusterAddons(
       namespace: "aws-for-fluent-bit",
       createNamespace: true,
       serviceAccountName: "aws-fluent-bit-for-cw-sa",
-      logGroupPrefix: `/aws/eks/${env}-${clusterName}`,
+      logGroupPrefix: `/aws/eks/${env.toLowerCase()}-${clusterName}`,
       logRetentionDays: 90,
     }),
     externalSecretAddon(),
