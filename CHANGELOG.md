@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.1.0...v1.1.1) (2025-08-27)
+
+
+### Bug Fixes
+
+* improvement and support for newer k8s ([2bc81f2](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/2bc81f22cea11ee6da5bf7cc7c32079fbf40f708))
+* improvement and support for newer k8s ([6d431ad](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/6d431ad2eb4c86c749df2544066eb3af20b22bed))
+
 ## [1.1.0](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.0.2...v1.1.0) (2024-11-14)
 
 
