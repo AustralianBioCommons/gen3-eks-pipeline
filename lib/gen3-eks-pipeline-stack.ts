@@ -27,9 +27,8 @@ import {
   RepoConfig,
 } from "./config/environments/config-interfaces";
 import { Gen3ConfigEventsStack } from "./gen3-config-events-stack";
-import { OidcIssuerStack } from "./oidc-issuer-stack";
-import { OidcIssuerAddOn } from "./oidc-issuer-addon";
-import { IamRolesAddOn } from "./iam-roles-addon";
+import { OidcIssuerAddOn } from "./addons/oidc-issuer-addon";
+import { IamRolesAddOn } from "./addons/iam-roles-addon";
 
 
 export class Gen3EksPipelineStack extends cdk.Stack {
