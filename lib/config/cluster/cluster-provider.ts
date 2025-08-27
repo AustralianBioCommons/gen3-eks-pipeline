@@ -34,7 +34,7 @@ export async function gen3ClusterProvider(
     vpcSubnets: vpcSubnets ? [vpcSubnets] : undefined,
     managedNodeGroups: [
       {
-        id: `mng-${env}`,
+        id: `mng-${env.toLowerCase()}`,
         minSize: clusterConfig.minSize,
         maxSize: clusterConfig.maxSize,
         desiredSize: clusterConfig.desiredSize,
@@ -74,7 +74,7 @@ export async function gen3ClusterProvider(
 
 // Function to retrieve cluster configuration from Parameter Store
 async function getClusterConfig(env: string, region: string) {
-  const paramName = `/gen3/${env}/cluster-config`; 
+  const paramName = `/gen3/${env.toLowerCase()}/cluster-config`; 
   const ssmClient = new SSMClient({ region });
   const command = new GetParameterCommand({
     Name: paramName,
