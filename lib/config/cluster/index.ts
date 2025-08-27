@@ -1,5 +1,6 @@
 import * as blueprints from "@aws-quickstart/eks-blueprints";
-
+import * as eks from "aws-cdk-lib/aws-eks";
+import { ArgoRedisInitRbacAddOn } from "../../addons/argo-redis-init";
 
 // ArgoCd credential prefix in secret Manager
 const argocdCredentialName = "argocdAdmin";
@@ -27,6 +28,9 @@ const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
     },
   });
 
+
+
+
 // Function to configure the ArgoCD add-on for a specific environment
 const argoCdAddon = (
   env: string,
@@ -44,6 +48,9 @@ const argoCdAddon = (
           type: serviceType || "NodePort",
         },
       },
+      configs: { cm: { "timeout.reconciliation": "45s" } },
+      notifications: { enabled: true, livenessProbe: { enabled: true }, readinessProbe: { enabled: true } },
+      commitServer: { enabled: true },
       helm: {
         valueFiles: ["values.yaml", "gen3-values.yaml"],
       },
@@ -52,6 +59,10 @@ const argoCdAddon = (
 
 // Common add-ons to be included in all clusters
 export const commonAddons: Array<blueprints.ClusterAddOn> = [
+    new ArgoRedisInitRbacAddOn({                  
+    namespace: "argocd",
+    // serviceAccountName: "blueprints-addon-argocd-redis-secret-init", // default OK
+  }),
   new blueprints.addons.CertManagerAddOn(),
   new blueprints.addons.CalicoOperatorAddOn(),
   new blueprints.addons.MetricsServerAddOn(),
