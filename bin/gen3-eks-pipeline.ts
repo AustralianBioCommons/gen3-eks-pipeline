@@ -25,7 +25,7 @@ if (usePipeline) {
     envName: "tools",
   };
   console.log(`🚀 Deploying EKS with CI/CD Pipeline...`);
-  new Gen3EksPipelineStack().buildAsync(app, `Gen3-Eks-Pipeline-cad`, props);
+  new Gen3EksPipelineStack().buildAsync(app, `Gen3-Eks-Pipeline`, props);
 } else {
   // Get environment from context or default to "uat"
   const envName = app.node.tryGetContext("envName") || "uat";
