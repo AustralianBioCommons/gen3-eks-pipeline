@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.2](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.1.1...v1.1.2) (2025-08-28)
+
+
+### Bug Fixes
+
+* disable commit server ([5509b36](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/5509b36f60fcbcb718ae06353cffad0b2ac61cc1))
+* disable commit server ([5509b36](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/5509b36f60fcbcb718ae06353cffad0b2ac61cc1))
+* disable ESO crds ([1ad3503](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/1ad35036db59331f76fb61378c12e0ebf46b0674))
+* disable ESO crds ([1ad3503](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/1ad35036db59331f76fb61378c12e0ebf46b0674))
+* retain stack name ([b52d5d0](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/b52d5d0beebc043fd0f74f480172addd1c5eb126))
+* retain stack name ([b52d5d0](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/b52d5d0beebc043fd0f74f480172addd1c5eb126))
+* retain stack name ([ce83312](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/ce8331273b6b2a92a5467eb806234e547904923e))
+* stack name typo ([47dd7dd](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/47dd7dd3864348735dd4aed829d43cdadd610b9b))
+* stack name typo ([47dd7dd](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/47dd7dd3864348735dd4aed829d43cdadd610b9b))
+* stack name typo ([80ce18a](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/80ce18a0199d027d5ee17cf16708c48303e60f05))
+* stop helm from managing argocd-cm ([68b8d71](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/68b8d71ab8cad068313c5d377cbf2582b8ff65ae))
+* stop helm from managing argocd-cm ([68b8d71](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/68b8d71ab8cad068313c5d377cbf2582b8ff65ae))
+* update argocd redis/rbac ([fbf5316](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/fbf53164c280e78b50d0f5a4b56f709e99473b02))
+* update argocd redis/rbac ([fe1f0e6](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/fe1f0e60ac509603ebdff307e8de47f7af93c2a8))
+
 ## [1.1.1](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.1.0...v1.1.1) (2025-08-27)
 
 
