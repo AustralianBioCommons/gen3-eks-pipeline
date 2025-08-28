@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.3](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.1.2...v1.1.3) (2025-08-28)
+
+
+### Bug Fixes
+
+* enable eso crds ([2684019](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/2684019969f51c8d6898d4a3c2eb4ab86df64f87))
+* enable eso crds ([2684019](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/2684019969f51c8d6898d4a3c2eb4ab86df64f87))
+
 ## [1.1.2](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.1.1...v1.1.2) (2025-08-28)
 
 
