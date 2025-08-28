@@ -41,7 +41,7 @@ const argoCdAddon = (
 ): blueprints.addons.ArgoCDAddOn =>
   new blueprints.addons.ArgoCDAddOn({
     adminPasswordSecretName: `${argocdCredentialName}-${env.toLowerCase()}`,
-    name: `${env}-Gen3Cluster`,
+    name: `${env}Gen3Cluster`,
     bootstrapRepo: bootstrapRepo(env, targetRevision, workloadRepoUrl),
     values: {
       server: {
