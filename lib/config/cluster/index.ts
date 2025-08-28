@@ -1,6 +1,7 @@
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 import * as eks from "aws-cdk-lib/aws-eks";
 import { ArgoRedisInitRbacAddOn } from "../../addons/argo-redis-init";
+import { createServiceAccount } from "@aws-quickstart/eks-blueprints/dist/utils";
 
 // ArgoCd credential prefix in secret Manager
 const argocdCredentialName = "argocdAdmin";
@@ -44,6 +45,7 @@ const argoCdAddon = (
     bootstrapRepo: bootstrapRepo(env, targetRevision, workloadRepoUrl),
     values: {
       server: {
+        createServiceAccount: true,
         service: {
           type: serviceType || "NodePort",
         },
