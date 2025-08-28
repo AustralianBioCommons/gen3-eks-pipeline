@@ -40,7 +40,7 @@ const argoCdAddon = (
 ): blueprints.addons.ArgoCDAddOn =>
   new blueprints.addons.ArgoCDAddOn({
     adminPasswordSecretName: `${argocdCredentialName}-${env.toLowerCase()}`,
-    name: `${env}Gen3Cluster`,
+    name: `${env}-Gen3Cluster`,
     bootstrapRepo: bootstrapRepo(env, targetRevision, workloadRepoUrl),
     values: {
       server: {
@@ -58,10 +58,10 @@ const argoCdAddon = (
 
 // Common add-ons to be included in all clusters
 export const commonAddons: Array<blueprints.ClusterAddOn> = [
-    new ArgoRedisInitRbacAddOn({                  
-    namespace: "argocd",
-    // serviceAccountName: "blueprints-addon-argocd-redis-secret-init", // default OK
-  }),
+  //   new ArgoRedisInitRbacAddOn({                  
+  //   namespace: "argocd",
+  //   // serviceAccountName: "blueprints-addon-argocd-redis-secret-init", // default OK
+  // }),
   new blueprints.addons.CertManagerAddOn(),
   new blueprints.addons.CalicoOperatorAddOn(),
   new blueprints.addons.MetricsServerAddOn(),
