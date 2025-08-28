@@ -45,7 +45,6 @@ const argoCdAddon = (
     bootstrapRepo: bootstrapRepo(env, targetRevision, workloadRepoUrl),
     values: {
       server: {
-        createServiceAccount: true,
         service: {
           type: serviceType || "NodePort",
         },
