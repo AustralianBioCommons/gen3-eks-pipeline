@@ -1,7 +1,6 @@
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 import * as eks from "aws-cdk-lib/aws-eks";
 import { ArgoRedisInitRbacAddOn } from "../../addons/argo-redis-init";
-import { createServiceAccount } from "@aws-quickstart/eks-blueprints/dist/utils";
 
 // ArgoCd credential prefix in secret Manager
 const argocdCredentialName = "argocdAdmin";
@@ -23,7 +22,6 @@ const bootstrapRepo = (
 const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
   new blueprints.addons.ExternalsSecretsAddOn({
     values: {
-      installCRDs: false,
       crds: {
         createClusterSecretStore: true,
       },
