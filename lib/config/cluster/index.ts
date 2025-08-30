@@ -25,6 +25,7 @@ const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
   new blueprints.addons.ExternalsSecretsAddOn({
     values: {
       installCRDs: true,
+      webhook: { service: { enabled: true } },
       crds: {
         createClusterSecretStore: true,
       },
@@ -55,6 +56,10 @@ const argoCdAddon = (
         service: {
           type: serviceType || "NodePort",
         },
+      configs: {
+        cm:   { create: false },
+        rbac: { create: false }
+      },
       },
       notifications: { enabled: true, livenessProbe: { enabled: true }, readinessProbe: { enabled: true } },
       commitServer: { enabled: false },
@@ -65,21 +70,16 @@ const argoCdAddon = (
   });
 
 // Common add-ons to be included in all clusters
-export const commonAddons: Array<blueprints.ClusterAddOn> = [
-  //   new ArgoRedisInitRbacAddOn({                  
-  //   namespace: "argocd",
-  //   // serviceAccountName: "blueprints-addon-argocd-redis-secret-init", // default OK
-  // }),
-  new blueprints.addons.CertManagerAddOn(),
-  new blueprints.addons.CalicoOperatorAddOn(),
+export const commonAddons: blueprints.ClusterAddOn[] = [
+  new blueprints.addons.VpcCniAddOn(),
+  new blueprints.addons.KubeProxyAddOn(),
+  new blueprints.addons.CoreDnsAddOn(),
   new blueprints.addons.MetricsServerAddOn(),
-  new blueprints.addons.ClusterAutoScalerAddOn(),
+  new blueprints.addons.CalicoOperatorAddOn(),
+  new blueprints.addons.EbsCsiDriverAddOn(),     
   new blueprints.addons.SecretsStoreAddOn(),
   new blueprints.addons.SSMAgentAddOn(),
-  new blueprints.addons.CoreDnsAddOn(),
-  new blueprints.addons.KubeProxyAddOn(),
-  new blueprints.addons.VpcCniAddOn(),
-  new blueprints.addons.EbsCsiDriverAddOn(),
+  new blueprints.addons.ClusterAutoScalerAddOn(),
 ];
 
 // Function to create cluster-specific add-ons for different environments
