@@ -33,21 +33,8 @@ export async function gen3ClusterProvider(
     endpointAccess: EndpointAccess.PRIVATE,
     vpcSubnets: vpcSubnets ? [vpcSubnets] : undefined,
     managedNodeGroups: [
-      {
-        id: `mng-${env.toLowerCase()}`,
-        minSize: clusterConfig.minSize,
-        maxSize: clusterConfig.maxSize,
-        desiredSize: clusterConfig.desiredSize,
-        instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
-        amiType: NodegroupAmiType.AL2_X86_64,
-        nodeGroupCapacityType: CapacityType.ON_DEMAND,
-        amiReleaseVersion: clusterConfig.amiReleaseVersion,
-        diskSize: clusterConfig.diskSize, 
-        nodeGroupSubnets: nodeGroupSubnets || undefined,
-        tags: clusterConfig.tags ?? {},
-      },
       // {
-      //   id: `mng-${env}-1`,
+      //   id: `mng-${env.toLowerCase()}`,
       //   minSize: clusterConfig.minSize,
       //   maxSize: clusterConfig.maxSize,
       //   desiredSize: clusterConfig.desiredSize,
@@ -55,19 +42,33 @@ export async function gen3ClusterProvider(
       //   amiType: NodegroupAmiType.AL2_X86_64,
       //   nodeGroupCapacityType: CapacityType.ON_DEMAND,
       //   amiReleaseVersion: clusterConfig.amiReleaseVersion,
+      //   diskSize: clusterConfig.diskSize, 
       //   nodeGroupSubnets: nodeGroupSubnets || undefined,
-      //   launchTemplate: {
-      //     blockDevices: [
-      //       {
-      //         deviceName: "/dev/xvda",
-      //         volume: ec2.BlockDeviceVolume.ebs(clusterConfig.diskSize, {
-      //           encrypted: false,
-      //         }),
-      //       },
-      //     ],
-      //   },
-      //   tags: clusterConfig.tags
+      //   tags: clusterConfig.tags ?? {},
       // },
+      {
+        id: `mng-${env.toLowerCase()}-1`,
+        minSize: clusterConfig.minSize,
+        maxSize: clusterConfig.maxSize,
+        desiredSize: clusterConfig.desiredSize,
+        instanceTypes: [new ec2.InstanceType(clusterConfig.instanceType)],
+        amiType: NodegroupAmiType.AL2023_X86_64_STANDARD,
+        nodeGroupCapacityType: CapacityType.ON_DEMAND,
+        nodeGroupSubnets: nodeGroupSubnets || undefined,
+        launchTemplate: {
+          blockDevices: [
+            {
+              deviceName: "/dev/xvda",
+              volume: ec2.BlockDeviceVolume.ebs(clusterConfig.diskSize, {
+                encrypted: true,
+                volumeType: ec2.EbsDeviceVolumeType.GP3,
+                deleteOnTermination: true,
+              }),
+            },
+          ],
+        },
+        tags: clusterConfig.tags
+      },
     ],
   });
 }

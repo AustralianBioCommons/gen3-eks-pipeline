@@ -1,7 +1,6 @@
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 import * as eks from "aws-cdk-lib/aws-eks";
-import { ArgoRedisInitRbacAddOn } from "../../addons/argo-redis-init";
-import { createServiceAccount } from "@aws-quickstart/eks-blueprints/dist/utils";
+
 import cluster from "cluster";
 
 // ArgoCd credential prefix in secret Manager
@@ -74,6 +73,7 @@ export const commonAddons: blueprints.ClusterAddOn[] = [
   new blueprints.addons.VpcCniAddOn(),
   new blueprints.addons.KubeProxyAddOn(),
   new blueprints.addons.CoreDnsAddOn(),
+  new blueprints.addons.CertManagerAddOn(),
   new blueprints.addons.MetricsServerAddOn(),
   new blueprints.addons.CalicoOperatorAddOn(),
   new blueprints.addons.EbsCsiDriverAddOn(),     
