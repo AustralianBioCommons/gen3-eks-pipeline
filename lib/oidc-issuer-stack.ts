@@ -14,6 +14,7 @@ export interface OidcIssuerStackProps extends cdk.StackProps {
   clusterName: string;
   namespace: string;
   oidcIssuerParameter: string;
+  refreshToken?: string;
 }
 
 export class OidcIssuerStack extends cdk.Stack {
@@ -83,9 +84,7 @@ export class OidcIssuerStack extends cdk.Stack {
               },
             }),
           },
-          physicalResourceId: cr.PhysicalResourceId.of(
-            "OidcIssuerCustomResource"
-          ),
+          physicalResourceId: cr.PhysicalResourceId.of(`Gen3Oidc-${envKey}-${props.refreshToken ?? "static"}`),
         },
         policy: cr.AwsCustomResourcePolicy.fromStatements([
           new iam.PolicyStatement({
