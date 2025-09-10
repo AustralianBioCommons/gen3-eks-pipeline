@@ -12,7 +12,6 @@ async function putParam(Name: string, Value: string, Description?: string) {
   await ssm.send(new PutParameterCommand({
     Name, Value, Type: "String", Overwrite: true,
     Description,
-    // You can also add Tier/Tags if you like:
     // Tier: "Standard",
     // Tags: [{ Key: "Project", Value: "Gen3" }]
   }));

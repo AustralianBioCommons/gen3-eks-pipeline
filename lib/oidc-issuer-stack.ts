@@ -26,6 +26,8 @@ export class OidcIssuerStack extends cdk.Stack {
     const { clusterName, oidcIssuerParameter } = props;
     this.env = props.env
 
+    const envKey = `${props.namespace}-${props.clusterName}`;
+
     // Lambda function to fetch OIDC issuer and set in SSM
     const fetchOidcIssuerLambda = new NodejsFunction(
       this,
@@ -39,7 +41,7 @@ export class OidcIssuerStack extends cdk.Stack {
         ),
         handler: "handler",
         environment: {
-          PARAMETER_NAME: oidcIssuerParameter,
+          ENV_KEY: envKey,
         },
         bundling: {
           minify: true,
