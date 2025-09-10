@@ -36,7 +36,7 @@ function getEmbedAllowlist(scope: Construct): Set<string> {
   const arr = Array.isArray(raw) ? raw : [raw];
   return new Set(
     arr
-      .flatMap((x: string) => String(x)) 
+      .flatMap((x: string) => String(x))
       .map(s => s.trim())
       .filter(Boolean)
   );
@@ -142,7 +142,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       .repository(repositoryConfig)
       .enableCrossAccountKeys();
 
-    const embedAllow = getEmbedAllowlist(this); 
+    const embedAllow = getEmbedAllowlist(this);
 
     // Add stages dynamically
     for (const { id, env, teams, externalSecret, addons } of stages) {
@@ -154,7 +154,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
       const issuerAddon = new OidcIssuerAddOn(
         env.namespace,
-        `/gen3/${env.namespace}-${env.name}/oidcIssuer`,
+        `/gen3/${env.namespace}-${env.clusterName}/oidcIssuer`,
         env.aws
       );
 
