@@ -14,6 +14,7 @@ export interface OidcIssuerStackProps extends cdk.StackProps {
   clusterName: string;
   namespace: string;
   oidcIssuerParameter: string;
+  refreshToken?: string;
 }
 
 export class OidcIssuerStack extends cdk.Stack {
@@ -25,6 +26,8 @@ export class OidcIssuerStack extends cdk.Stack {
 
     const { clusterName, oidcIssuerParameter } = props;
     this.env = props.env
+
+    const envKey = `${props.namespace}-${props.clusterName}`;
 
     // Lambda function to fetch OIDC issuer and set in SSM
     const fetchOidcIssuerLambda = new NodejsFunction(
@@ -39,7 +42,7 @@ export class OidcIssuerStack extends cdk.Stack {
         ),
         handler: "handler",
         environment: {
-          PARAMETER_NAME: oidcIssuerParameter,
+          ENV_KEY: envKey,
         },
         bundling: {
           minify: true,
@@ -81,9 +84,7 @@ export class OidcIssuerStack extends cdk.Stack {
               },
             }),
           },
-          physicalResourceId: cr.PhysicalResourceId.of(
-            "OidcIssuerCustomResource"
-          ),
+          physicalResourceId: cr.PhysicalResourceId.of(`Gen3Oidc-${envKey}-${props.refreshToken ?? "static"}`),
         },
         policy: cr.AwsCustomResourcePolicy.fromStatements([
           new iam.PolicyStatement({

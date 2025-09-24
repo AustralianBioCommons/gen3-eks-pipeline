@@ -30,6 +30,18 @@ import { Gen3ConfigEventsStack } from "./gen3-config-events-stack";
 import { OidcIssuerAddOn } from "./addons/oidc-issuer-addon";
 import { IamRolesAddOn } from "./addons/iam-roles-addon";
 
+function getEmbedAllowlist(scope: Construct): Set<string> {
+  const raw = scope.node.tryGetContext("embedIamRolesAllowlist");
+  if (!raw) return new Set<string>();
+  const arr = Array.isArray(raw) ? raw : [raw];
+  return new Set(
+    arr
+      .flatMap((x: string) => String(x))
+      .map(s => s.trim())
+      .filter(Boolean)
+  );
+}
+
 
 export class Gen3EksPipelineStack extends cdk.Stack {
   async buildAsync(scope: Construct, id: string, props: cdk.StackProps) {
@@ -130,6 +142,8 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       .repository(repositoryConfig)
       .enableCrossAccountKeys();
 
+    const embedAllow = getEmbedAllowlist(this);
+
     // Add stages dynamically
     for (const { id, env, teams, externalSecret, addons } of stages) {
 
@@ -140,7 +154,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
       const issuerAddon = new OidcIssuerAddOn(
         env.namespace,
-        `/gen3/${env.namespace}-${env.name}/oidcIssuer`,
+        `/gen3/${env.namespace}-${env.clusterName}/oidcIssuer`,
         env.aws
       );
 
@@ -154,9 +168,8 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           // validate in node (no jq dependency)
           `node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('cfg.json','utf8'));\
           if(!c.version) throw new Error('Missing version');\
-          if(!c.amiReleaseVersion) throw new Error('Missing amiReleaseVersion');\
           if(c.diskSize===undefined) throw new Error('Missing diskSize');\
-          console.log('Preflight OK:', c.version, c.amiReleaseVersion, c.diskSize);"`
+          console.log('Preflight OK:', c.version, c.diskSize);"`
         ],
         primaryOutputDirectory: ".", // so logs are surfaced
       });
@@ -166,7 +179,6 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         .addOns(
           ...addons,
           issuerAddon,
-          new IamRolesAddOn(env.name, env.namespace)
         )
         .clusterProvider(
           // We check if env.clusterSubnets and env.nodeGroupSubnets are defined.
@@ -188,6 +200,14 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           new blueprints.VpcProvider(env.vpcId || undefined)
         )
         .withEnv(env.aws);
+
+      // Conditionally embed IAM roles **only** for allow-listed envs
+      if (embedAllow.has(env.name)) {
+        stageBuilder.addOns(new IamRolesAddOn(env.name, env.namespace));
+        blueprints.utils.logger.info(`IAM roles: EMBEDDED for env "${env.name}"`);
+      } else {
+        blueprints.utils.logger.info(`IAM roles: SKIPPED for env "${env.name}" (managed externally)`);
+      }
 
       // Conditionally add teams only if platformRoleName is defined
       if (teams) {

@@ -1,6 +1,7 @@
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 import * as eks from "aws-cdk-lib/aws-eks";
-import { ArgoRedisInitRbacAddOn } from "../../addons/argo-redis-init";
+
+import cluster from "cluster";
 
 // ArgoCd credential prefix in secret Manager
 const argocdCredentialName = "argocdAdmin";
@@ -22,9 +23,16 @@ const bootstrapRepo = (
 const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
   new blueprints.addons.ExternalsSecretsAddOn({
     values: {
+      installCRDs: true,
+      webhook: { service: { enabled: true } },
       crds: {
         createClusterSecretStore: true,
       },
+      configs: {
+        cm: { create: false},
+        rbac: { create: false}
+      },
+      secretStore: { create: true, name: "gen3-secret-store"}
     },
   });
 
@@ -40,13 +48,17 @@ const argoCdAddon = (
 ): blueprints.addons.ArgoCDAddOn =>
   new blueprints.addons.ArgoCDAddOn({
     adminPasswordSecretName: `${argocdCredentialName}-${env.toLowerCase()}`,
-    name: `${env}Gen3Cluster`,
+    name: `${env}-Gen3Cluster`,
     bootstrapRepo: bootstrapRepo(env, targetRevision, workloadRepoUrl),
     values: {
       server: {
         service: {
           type: serviceType || "NodePort",
         },
+      configs: {
+        cm:   { create: false },
+        rbac: { create: false }
+      },
       },
       notifications: { enabled: true, livenessProbe: { enabled: true }, readinessProbe: { enabled: true } },
       commitServer: { enabled: false },
@@ -57,21 +69,17 @@ const argoCdAddon = (
   });
 
 // Common add-ons to be included in all clusters
-export const commonAddons: Array<blueprints.ClusterAddOn> = [
-    new ArgoRedisInitRbacAddOn({                  
-    namespace: "argocd",
-    // serviceAccountName: "blueprints-addon-argocd-redis-secret-init", // default OK
-  }),
+export const commonAddons: blueprints.ClusterAddOn[] = [
+  new blueprints.addons.VpcCniAddOn(),
+  new blueprints.addons.KubeProxyAddOn(),
+  new blueprints.addons.CoreDnsAddOn(),
   new blueprints.addons.CertManagerAddOn(),
-  new blueprints.addons.CalicoOperatorAddOn(),
   new blueprints.addons.MetricsServerAddOn(),
-  new blueprints.addons.ClusterAutoScalerAddOn(),
+  new blueprints.addons.CalicoOperatorAddOn(),
+  new blueprints.addons.EbsCsiDriverAddOn(),     
   new blueprints.addons.SecretsStoreAddOn(),
   new blueprints.addons.SSMAgentAddOn(),
-  new blueprints.addons.CoreDnsAddOn(),
-  new blueprints.addons.KubeProxyAddOn(),
-  new blueprints.addons.VpcCniAddOn(),
-  new blueprints.addons.EbsCsiDriverAddOn(),
+  new blueprints.addons.ClusterAutoScalerAddOn(),
 ];
 
 // Function to create cluster-specific add-ons for different environments

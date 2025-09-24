@@ -17,6 +17,8 @@
     ]
   },
   "context": {
+    "embedIamRolesAllowlist": ["test", "uat"],
+
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [
