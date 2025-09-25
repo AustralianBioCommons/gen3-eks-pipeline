@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import * as cdk from "aws-cdk-lib";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Gen3EksPipelineStack } from "../lib/gen3-eks-pipeline-stack";
 import { Gen3EksBlueprintsStack } from "../lib/gen3-eks-blueprints-stack";
 import { loadEnvConfig, loadClusterConfig } from "../lib/loadConfig";
@@ -10,36 +11,52 @@ const app = new cdk.App();
 // Automatically detect if running in a CI/CD pipeline
 const isPipelineEnv =
   process.env.CODEBUILD_BUILD_ID ||
-  process.env.GITHUB_ACTIONS || 
+  process.env.GITHUB_ACTIONS ||
   process.env.CI;
 
 // Default to pipeline mode if in a CI/CD environment
 const usePipeline = isPipelineEnv || app.node.tryGetContext("usePipeline") === "true";
 
 if (usePipeline) {
-  const props = {
-    env: {
-      account: process.env.CDK_DEFAULT_ACCOUNT,
-      region: process.env.CDK_DEFAULT_REGION,
-    },
-    envName: "tools",
+  const lookupEnv = {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
   };
+  const lookup = new cdk.Stack(app, "Lookup-For-SSM", { env: lookupEnv });
+  // Try to read SSM parameter for stackName, fallback if not found
+  // For backward compatibility, we use a default stack name if the parameter is not set
+  let stackName: string;
+  try {
+    stackName = ssm.StringParameter.valueFromLookup(
+      lookup,
+      "/gen3/blueprint-codepipeline-stackname"
+    );
+    console.log(`ℹ️ Found stackName in SSM: ${stackName}`);
+  } catch {
+    stackName = "Gen3-Eks-pipeline"; // default fallback
+    console.log(`⚠️ Using default stackName: ${stackName}`);
+  }
+  const props: cdk.StackProps & { envName: string } = {
+    env: lookupEnv,
+    envName: "tools",
+    stackName
+  };
+
   console.log(`🚀 Deploying EKS with CI/CD Pipeline...`);
   new Gen3EksPipelineStack().buildAsync(app, `Gen3-Eks-pipeline`, props);
 } else {
-  // Get environment from context or default to "uat"
   const envName = app.node.tryGetContext("envName") || "uat";
   const envConfig = loadEnvConfig(envName);
-  const clusterConfig = loadClusterConfig(envName);
+  loadClusterConfig(envName);
 
-  const props = {
-    env: {
-      account: envConfig.aws.account,
-      region: envConfig.aws.region,
-    },
+  const stackName = `Gen3-Eks-Blueprint-${envName}`;
+  const props: cdk.StackProps & { envName: string; project: string } = {
+    env: { account: envConfig.aws.account, region: envConfig.aws.region },
     envName,
-    project: "cad",
+    project: "gen3",
+    stackName,
   };
-  console.log(`🚀 Deploying EKS without Pipeline for environment: ${envName}...`);
-  new Gen3EksBlueprintsStack(app, `Gen3-Eks-Blueprint-${envName}`, props);
+
+  console.log(`🚀 Deploying EKS without Pipeline as ${stackName}...`);
+  new Gen3EksBlueprintsStack(app, "BlueprintConstructId", props);
 }
