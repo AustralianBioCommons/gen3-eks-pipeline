@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.2.0...v1.2.1) (2025-09-25)
+
+
+### Bug Fixes
+
+* pipeline stackname backward compatibility ([0c0e9aa](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/0c0e9aaedcb0fd558ff57eb5b68f12053c10dd83))
+* pipeline stackname backward compatibility ([f50d9b7](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/f50d9b7bbc9ef3781437444ec386fefbf6cc73a7))
+
 ## [1.2.0](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.1.3...v1.2.0) (2025-09-24)
 
 
