@@ -11,7 +11,7 @@ async function getOptionalSSMParameter(parameterName: string, region?: string): 
   try {
     const command = new GetParameterCommand({
       Name: parameterName,
-      WithDecryption: false // Set to true if you need encrypted parameters
+      WithDecryption: false
     });
 
     const response = await ssmClient.send(command);
