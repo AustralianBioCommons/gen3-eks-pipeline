@@ -68,11 +68,10 @@ async function main() {
     const props: cdk.StackProps & { envName: string } = {
       env: lookupEnv,
       envName: "tools",
-      stackName
     };
 
     console.log(`🚀 Deploying EKS with CI/CD Pipeline as '${stackName}'...`);
-    new Gen3EksPipelineStack().buildAsync(app, `Gen3-Eks-pipeline`, props);
+    new Gen3EksPipelineStack().buildAsync(app, stackName, props);
 
   } else {
     const envName = app.node.tryGetContext("envName") || "uat";
