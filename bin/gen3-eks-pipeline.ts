@@ -25,17 +25,24 @@ if (usePipeline) {
   const lookup = new cdk.Stack(app, "Lookup-For-SSM", { env: lookupEnv });
   // Try to read SSM parameter for stackName, fallback if not found
   // For backward compatibility, we use a default stack name if the parameter is not set
-  let stackName: string;
-  try {
-    stackName = ssm.StringParameter.valueFromLookup(
-      lookup,
-      "/gen3/blueprint-codepipeline-stackname"
-    );
-    console.log(`ℹ️ Found stackName in SSM: ${stackName}`);
-  } catch {
-    stackName = "Gen3-Eks-pipeline"; // default fallback
-    console.log(`⚠️ Using default stackName: ${stackName}`);
+  const DEFAULT_STACK_NAME = "Gen3-Eks-pipeline";
+  const PARAM = "/gen3/blueprint-codepipeline-stackname";
+
+  // Read once
+  const raw = ssm.StringParameter.valueFromLookup(lookup, PARAM);
+
+  // Helper: detect CDK’s placeholder
+  const isDummy = (v?: string) =>
+    !v || v.trim() === "" || v.startsWith("dummy-value-for-");
+
+  let stackName = DEFAULT_STACK_NAME;
+  if (!isDummy(raw)) {
+    stackName = raw.trim();
+    console.log(`ℹ️ Using stackName from SSM: ${stackName}`);
+  } else {
+    console.log(`⚠️ SSM param missing/unresolvable — falling back to: ${stackName}`);
   }
+
   const props: cdk.StackProps & { envName: string } = {
     env: lookupEnv,
     envName: "tools",
