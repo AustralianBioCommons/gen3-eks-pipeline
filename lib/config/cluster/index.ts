@@ -3,6 +3,8 @@ import * as eks from "aws-cdk-lib/aws-eks";
 
 import cluster from "cluster";
 
+import { ExtendedEbsCsiDriverAddOn } from "../../addons/extended-ebscsi-driver-addon";
+
 // ArgoCd credential prefix in secret Manager
 const argocdCredentialName = "argocdAdmin";
 
@@ -76,9 +78,7 @@ export const commonAddons: blueprints.ClusterAddOn[] = [
   new blueprints.addons.CertManagerAddOn(),
   new blueprints.addons.MetricsServerAddOn(),
   new blueprints.addons.CalicoOperatorAddOn(),
-  new blueprints.addons.EbsCsiDriverAddOn({
-    configurationValues: { provisioner: { enableVolumeScheduling: true, enableVolumeResizing: true, enableVolumeSnapshot: true } },
-  }),
+  new ExtendedEbsCsiDriverAddOn(),
   new blueprints.addons.SecretsStoreAddOn(),
   new blueprints.addons.SSMAgentAddOn(),
   new blueprints.addons.ClusterAutoScalerAddOn(),
