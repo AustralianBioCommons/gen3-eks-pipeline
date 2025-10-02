@@ -3,6 +3,8 @@ import * as eks from "aws-cdk-lib/aws-eks";
 
 import cluster from "cluster";
 
+import { ExtendedEbsCsiDriverAddOn } from "../../addons/extended-ebscsi-driver-addon";
+
 // ArgoCd credential prefix in secret Manager
 const argocdCredentialName = "argocdAdmin";
 
@@ -29,10 +31,10 @@ const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
         createClusterSecretStore: true,
       },
       configs: {
-        cm: { create: false},
-        rbac: { create: false}
+        cm: { create: false },
+        rbac: { create: false }
       },
-      secretStore: { create: true, name: "gen3-secret-store"}
+      secretStore: { create: true, name: "gen3-secret-store" }
     },
   });
 
@@ -55,10 +57,10 @@ const argoCdAddon = (
         service: {
           type: serviceType || "NodePort",
         },
-      configs: {
-        cm:   { create: false },
-        rbac: { create: false }
-      },
+        configs: {
+          cm: { create: false },
+          rbac: { create: false }
+        },
       },
       notifications: { enabled: true, livenessProbe: { enabled: true }, readinessProbe: { enabled: true } },
       commitServer: { enabled: false },
@@ -76,7 +78,7 @@ export const commonAddons: blueprints.ClusterAddOn[] = [
   new blueprints.addons.CertManagerAddOn(),
   new blueprints.addons.MetricsServerAddOn(),
   new blueprints.addons.CalicoOperatorAddOn(),
-  new blueprints.addons.EbsCsiDriverAddOn(),     
+  new ExtendedEbsCsiDriverAddOn(),
   new blueprints.addons.SecretsStoreAddOn(),
   new blueprints.addons.SSMAgentAddOn(),
   new blueprints.addons.ClusterAutoScalerAddOn(),
