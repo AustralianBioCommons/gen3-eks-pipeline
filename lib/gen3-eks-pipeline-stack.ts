@@ -230,12 +230,12 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       });
     }
 
-    pipelineStack.build(scope, `${id}-stack`, { env: envValues.tools.aws });
-
-
-    // Event Bus stacks for each each environment
+    // Event Bus stacks for each environment (add before pipeline build to avoid
+    // modifying the construct tree after any synth invoked by pipeline build).
     // account is the source (tools) account here
     this.addEventBusStack(scope, envValues);
+
+    pipelineStack.build(scope, `${id}-stack`, { env: envValues.tools.aws });
   }
 
   private subnetsSelection(subnetIds: string[], type: string) {
