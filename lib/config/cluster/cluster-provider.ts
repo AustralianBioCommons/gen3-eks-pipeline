@@ -75,7 +75,7 @@ export async function gen3ClusterProvider(
 
 // Function to retrieve cluster configuration from Parameter Store
 async function getClusterConfig(env: string, region: string) {
-  const paramName = `/gen3/${env.toLowerCase()}/cluster-config`; 
+  const paramName = `/gen3/${env.toLowerCase()}/cluster-config`;
   const ssmClient = new SSMClient({ region });
   const command = new GetParameterCommand({
     Name: paramName,
@@ -94,6 +94,8 @@ async function getClusterConfig(env: string, region: string) {
 
 export function getKubernetesVersion(version: string): KubernetesVersion {
   switch (version) {
+    case "1.34":
+      return KubernetesVersion.V1_34;
     case "1.33":
       return KubernetesVersion.V1_33;
     case "1.32":
