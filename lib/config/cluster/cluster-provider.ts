@@ -14,16 +14,13 @@ import { Construct } from "constructs";
 
 
 // Generic cluster provider function
-export async function gen3ClusterProvider(
+export function buildClusterProviderFromConfig(
   env: string,
   clusterName: string,
+  clusterConfig: any,
   vpcSubnets?: ec2.SubnetSelection,
   nodeGroupSubnets?: ec2.SubnetSelection
 ) {
-  const clusterConfig = await getClusterConfig(env, toolsRegion);
-
-  //console.log(clusterConfig)
-
   const versionString = clusterConfig["version"];
   const version = getKubernetesVersion(versionString);
 
@@ -74,7 +71,7 @@ export async function gen3ClusterProvider(
 }
 
 // Function to retrieve cluster configuration from Parameter Store
-async function getClusterConfig(env: string, region: string) {
+export async function getClusterConfig(env: string, region: string) {
   const paramName = `/gen3/${env.toLowerCase()}/cluster-config`;
   const ssmClient = new SSMClient({ region });
   const command = new GetParameterCommand({
@@ -113,4 +110,3 @@ export function getKubernetesVersion(version: string): KubernetesVersion {
       throw new Error(`Unsupported Kubernetes version: ${version}`);
   }
 }
-

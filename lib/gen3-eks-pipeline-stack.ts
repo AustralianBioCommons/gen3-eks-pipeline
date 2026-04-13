@@ -12,7 +12,7 @@ import {
   toolsRegion
 } from "./config/environments";
 import * as clusterConfig from "./config/cluster";
-import { gen3ClusterProvider } from "./config/cluster/cluster-provider";
+import { buildClusterProviderFromConfig, getClusterConfig } from "./config/cluster/cluster-provider";
 import { buildPolicyStatements } from "./iam";
 import { IamRolesStack } from "./iam-roles-stack";
 import {
@@ -132,6 +132,15 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     // Gen3 environment stages
     const stages = await getStages(toolsRegion);
 
+    // Pre-fetch cluster configs before creating any constructs
+    const clusterConfigByEnv = new Map<string, any>();
+    await Promise.all(
+      stages.map(async ({ env }) => {
+        const cfg = await getClusterConfig(env.name, toolsRegion);
+        clusterConfigByEnv.set(env.name, cfg);
+      })
+    );
+
     console.log(stages)
 
     // Create the CodePipelineStack
@@ -184,9 +193,10 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           // We check if env.clusterSubnets and env.nodeGroupSubnets are defined.
           // If they are, it calls this.subnetsSelection to create a subnet selection;
           // otherwise, it passes undefined to gen3ClusterProvider
-          await gen3ClusterProvider(
+          buildClusterProviderFromConfig(
             env.name,
             env.clusterName,
+            clusterConfigByEnv.get(env.name),
             env.clusterSubnets
               ? this.subnetsSelection(env.clusterSubnets, "cluster")
               : undefined,
