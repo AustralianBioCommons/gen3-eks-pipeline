@@ -29,7 +29,6 @@ import {
 import { Gen3ConfigEventsStack } from "./gen3-config-events-stack";
 import { OidcIssuerAddOn } from "./addons/oidc-issuer-addon";
 import { IamRolesAddOn } from "./addons/iam-roles-addon";
-import { OidcIssuerStack } from "./oidc-issuer-stack";
 
 function getEmbedAllowlist(scope: Construct): Set<string> {
   const raw = scope.node.tryGetContext("embedIamRolesAllowlist");
@@ -162,13 +161,12 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         stringValue: env.hostname || 'gen3 hostname',
       });
 
-      new OidcIssuerStack(scope, `${env.namespace}-${env.name}-OidcIssuerStack`, {
-        env: env.aws,
-        clusterName: env.clusterName,      // concrete string from config
-        namespace: env.namespace,
-        oidcIssuerParameter: `/gen3/${env.namespace}-${env.clusterName}/oidcIssuer`,
-        // No refreshToken needed — clusterName is concrete so physicalResourceId is stable
-      });
+      const issuerAddon = new OidcIssuerAddOn(
+        env.namespace,
+        `/gen3/${env.namespace}-${env.clusterName}/oidcIssuer`,
+        env.aws,
+        env.clusterName,
+      );
 
       const ssmParam = `/gen3/${env.name}/cluster-config`;
       // (A) Preflight validator - read & check SSM JSON
