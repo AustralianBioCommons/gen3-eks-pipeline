@@ -64,7 +64,7 @@ export class OidcIssuerStack extends cdk.Stack {
           this.formatArn({
             service: "ssm",
             resource: "parameter",
-            resourceName: `/gen3/${envKey}/*`,
+            resourceName: `gen3/*`,
           }),
         ],
       })
