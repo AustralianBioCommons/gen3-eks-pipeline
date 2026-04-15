@@ -52,19 +52,21 @@ export class OidcIssuerStack extends cdk.Stack {
     // Grant permissions for Lambda to write to SSM
     fetchOidcIssuerLambda.addToRolePolicy(
       new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
         actions: [
           "ssm:PutParameter",
-          "eks:DescribeCluster",
           "ssm:GetParameter",
           "ssm:GetParameters",
           "ssm:DeleteParameter",
-          "ssm:AddTagsToResource"
+          "ssm:AddTagsToResource",
         ],
         resources: [
-          `arn:aws:ssm:${this.region}:${this.account}:parameter/gen3/*`,
-          `arn:aws:eks:${this.region}:${this.account}:cluster/${clusterName}`,
+          this.formatArn({
+            service: "ssm",
+            resource: "parameter",
+            resourceName: `/gen3/${envKey}/*`,
+          }),
         ],
-        effect: iam.Effect.ALLOW,
       })
     );
 
