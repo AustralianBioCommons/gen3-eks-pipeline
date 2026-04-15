@@ -57,9 +57,11 @@ export class OidcIssuerStack extends cdk.Stack {
           "eks:DescribeCluster",
           "ssm:GetParameter",
           "ssm:GetParameters",
+          "ssm:DeleteParameter",
+          "ssm:AddTagsToResource"
         ],
         resources: [
-          `arn:aws:ssm:${this.region}:${this.account}:parameter${oidcIssuerParameter}`,
+          `arn:aws:ssm:${this.region}:${this.account}:parameter/gen3/*`,
           `arn:aws:eks:${this.region}:${this.account}:cluster/${clusterName}`,
         ],
         effect: iam.Effect.ALLOW,
