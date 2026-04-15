@@ -24,6 +24,7 @@ const bootstrapRepo = (
 // Function to create the external secrets add-on configuration
 const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
   new blueprints.addons.ExternalsSecretsAddOn({
+    version: "0.16.1",
     values: {
       installCRDs: true,
       webhook: { service: { enabled: true } },
