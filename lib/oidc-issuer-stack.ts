@@ -70,6 +70,20 @@ export class OidcIssuerStack extends cdk.Stack {
       })
     );
 
+    fetchOidcIssuerLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["eks:DescribeCluster"],
+        resources: [
+          this.formatArn({
+            service: "eks",
+            resource: "cluster",
+            resourceName: clusterName,
+          }),
+        ],
+      })
+    )
+
     // Custom resource to invoke Lambda and fetch OIDC issuer
     const oidcIssuerResource = new cr.AwsCustomResource(
       this,

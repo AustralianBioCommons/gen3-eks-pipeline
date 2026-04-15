@@ -1,6 +1,6 @@
+// oidc-issuer-addon.ts
 import * as blueprints from "@aws-quickstart/eks-blueprints";
 import * as cdk from "aws-cdk-lib";
-import { OidcIssuerStack } from "../oidc-issuer-stack";
 
 export class OidcIssuerAddOn implements blueprints.ClusterAddOn {
   constructor(
@@ -11,21 +11,13 @@ export class OidcIssuerAddOn implements blueprints.ClusterAddOn {
   ) { }
 
   deploy(clusterInfo: blueprints.ClusterInfo): void {
-    const cluster = clusterInfo.cluster;
-    const refreshToken =
-      cluster.openIdConnectProvider?.openIdConnectProviderArn ??
-      cluster.clusterArn;
-
-    new OidcIssuerStack(
-      clusterInfo.cluster.stack,
-      `${this.namespace}-OidcIssuerStack`,
-      {
-        env: this.eksEnv,
-        clusterName: this.concreteClusterName,
-        namespace: this.namespace,
-        oidcIssuerParameter: this.oidcIssuerParameter,
-        refreshToken,
-      }
-    );
+    // Intentionally empty — OidcIssuerStack is created at pipeline level
+    // to avoid nested stack / cross-stack export issues
   }
+
+  // Expose for pipeline stack to consume
+  getClusterName() { return this.concreteClusterName; }
+  getNamespace() { return this.namespace; }
+  getOidcIssuerParameter() { return this.oidcIssuerParameter; }
+  getEksEnv() { return this.eksEnv; }
 }
