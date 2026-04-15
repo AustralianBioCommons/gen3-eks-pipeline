@@ -15,6 +15,7 @@ export interface OidcIssuerStackProps extends cdk.StackProps {
   namespace: string;
   oidcIssuerParameter: string;
   refreshToken?: string;
+  envKey: string;
 }
 
 export class OidcIssuerStack extends cdk.Stack {
@@ -25,7 +26,7 @@ export class OidcIssuerStack extends cdk.Stack {
 
     const { clusterName, oidcIssuerParameter } = props;
 
-    const envKey = `${props.namespace}-${props.clusterName}`;
+    const envKey = props.envKey;
 
     // Lambda function to fetch OIDC issuer and set in SSM
     const fetchOidcIssuerLambda = new NodejsFunction(

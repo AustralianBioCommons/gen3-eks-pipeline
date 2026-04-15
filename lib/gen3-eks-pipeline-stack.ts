@@ -161,8 +161,10 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         stringValue: env.hostname || 'gen3 hostname',
       });
 
+      const envKey = `${env.project}-${env.name}`;
+
       const issuerAddon = new OidcIssuerAddOn(
-        env.namespace,
+        envKey,
         `/gen3/${env.namespace}-${env.clusterName}/oidcIssuer`,
         env.aws,
         env.clusterName,

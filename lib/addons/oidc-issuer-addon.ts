@@ -10,7 +10,7 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 
 export class OidcIssuerAddOn implements blueprints.ClusterAddOn {
   constructor(
-    private namespace: string,
+    private envKey: string,
     private oidcIssuerParameter: string,
     private eksEnv: cdk.Environment,
     private concreteClusterName: string
@@ -18,12 +18,12 @@ export class OidcIssuerAddOn implements blueprints.ClusterAddOn {
 
   deploy(clusterInfo: blueprints.ClusterInfo): void {
     const stack = clusterInfo.cluster.stack;
-    const envKey = `${this.namespace}-${this.concreteClusterName}`;
+    const envKey = this.envKey;
 
     // Create Lambda directly in the cluster stack scope (not a new Stack)
     const fetchOidcIssuerLambda = new NodejsFunction(
       stack,
-      `${this.namespace}-FetchOidcIssuerFunction`,
+      `${envKey}-FetchOidcIssuerFunction`,
       {
         runtime: lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.minutes(2),
@@ -75,7 +75,7 @@ export class OidcIssuerAddOn implements blueprints.ClusterAddOn {
 
     new cr.AwsCustomResource(
       stack,
-      `${this.namespace}-OidcIssuerResource`,
+      `${envKey}-OidcIssuerResource`,
       {
         onCreate: {
           service: "Lambda",
