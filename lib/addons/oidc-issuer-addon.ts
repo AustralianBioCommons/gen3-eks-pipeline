@@ -3,11 +3,15 @@ import * as cdk from "aws-cdk-lib";
 import { OidcIssuerStack } from "../oidc-issuer-stack";
 
 export class OidcIssuerAddOn implements blueprints.ClusterAddOn {
-  constructor(private namespace: string, private oidcIssuerParameter: string, private eksEnv: cdk.Environment) { }
+  constructor(
+    private namespace: string,
+    private oidcIssuerParameter: string,
+    private eksEnv: cdk.Environment,
+    private concreteClusterName: string
+  ) { }
 
   deploy(clusterInfo: blueprints.ClusterInfo): void {
     const cluster = clusterInfo.cluster;
-    // Changes when the cluster (OIDC ID) changes. Safe fallback to issuer URL.
     const refreshToken =
       cluster.openIdConnectProvider?.openIdConnectProviderArn ??
       cluster.clusterArn;
@@ -17,7 +21,7 @@ export class OidcIssuerAddOn implements blueprints.ClusterAddOn {
       `${this.namespace}-OidcIssuerStack`,
       {
         env: this.eksEnv,
-        clusterName: clusterInfo.cluster.clusterName,
+        clusterName: this.concreteClusterName,
         namespace: this.namespace,
         oidcIssuerParameter: this.oidcIssuerParameter,
         refreshToken,

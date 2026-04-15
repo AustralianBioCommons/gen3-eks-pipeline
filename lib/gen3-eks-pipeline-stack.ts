@@ -164,7 +164,8 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       const issuerAddon = new OidcIssuerAddOn(
         env.namespace,
         `/gen3/${env.namespace}-${env.clusterName}/oidcIssuer`,
-        env.aws
+        env.aws,
+        env.clusterName,
       );
 
       const ssmParam = `/gen3/${env.name}/cluster-config`;
