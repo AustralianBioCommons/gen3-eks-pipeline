@@ -30,10 +30,6 @@ const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
       crds: {
         createClusterSecretStore: true,
       },
-      configs: {
-        cm: { create: false },
-        rbac: { create: false }
-      },
       secretStore: { create: true, name: "gen3-secret-store" }
     },
   });
@@ -57,12 +53,16 @@ const argoCdAddon = (
         service: {
           type: serviceType || "NodePort",
         },
-        configs: {
-          cm: { create: false },
-          rbac: { create: false }
-        },
       },
-      notifications: { enabled: true, livenessProbe: { enabled: true }, readinessProbe: { enabled: true } },
+      configs: {
+        cm: { create: false },
+        rbac: { create: false },
+      },
+      notifications: {
+        enabled: true,
+        livenessProbe: { enabled: true },
+        readinessProbe: { enabled: true },
+      },
       commitServer: { enabled: false },
       helm: {
         valueFiles: ["values.yaml", "gen3-values.yaml"],
