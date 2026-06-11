@@ -18,7 +18,7 @@ interface ManagedAddonConfig {
 }
 
 interface HelmAddonConfig {
-  skipCalico?: boolean;
+  calicoChartVersion?: string;
 }
 
 interface AddonConfig {
@@ -123,6 +123,9 @@ export async function commonAddonsForEnv(env: string): Promise<blueprints.Cluste
     ),
     new blueprints.addons.CertManagerAddOn(),
     new blueprints.addons.MetricsServerAddOn(),
+    new blueprints.addons.CalicoOperatorAddOn({
+      version: helm.calicoChartVersion,
+    }),
     new ExtendedEbsCsiDriverAddOn({
       version: managed.ebsCsiVersion,
     }),
@@ -130,10 +133,6 @@ export async function commonAddonsForEnv(env: string): Promise<blueprints.Cluste
     new blueprints.addons.SSMAgentAddOn(),
     new blueprints.addons.ClusterAutoScalerAddOn(),
   ];
-
-  if (!helm.skipCalico) {
-    addons.splice(5, 0, new blueprints.addons.CalicoOperatorAddOn());
-  }
 
   return addons;
 }
@@ -158,6 +157,4 @@ export function createClusterAddons(
     argoCdAddon(env, targetRevision, workloadRepoUrl, argocdServiceType),
   ];
 }
-
-
 
