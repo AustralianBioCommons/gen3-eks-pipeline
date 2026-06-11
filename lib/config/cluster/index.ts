@@ -19,6 +19,7 @@ interface ManagedAddonConfig {
 
 interface HelmAddonConfig {
   calicoChartVersion?: string;
+  argoCdChartVersion?: string;
 }
 
 interface AddonConfig {
@@ -64,9 +65,11 @@ const argoCdAddon = (
   env: string,
   targetRevision: string,
   workloadRepoUrl: string,
+  helm?: HelmAddonConfig,
   serviceType?: string
 ): blueprints.addons.ArgoCDAddOn =>
   new blueprints.addons.ArgoCDAddOn({
+    ...(helm?.argoCdChartVersion ? { version: helm.argoCdChartVersion } : {}),
     adminPasswordSecretName: `${argocdCredentialName}-${env.toLowerCase()}`,
     name: `${env}-Gen3Cluster`,
     bootstrapRepo: bootstrapRepo(env, targetRevision, workloadRepoUrl),
@@ -146,6 +149,7 @@ export function createClusterAddons(
   clusterName: string,
   targetRevision: string,
   workloadRepoUrl: string,
+  helm?: HelmAddonConfig,
   argocdServiceType?: string,
 ): Array<blueprints.ClusterAddOn> {
   return [
@@ -157,6 +161,6 @@ export function createClusterAddons(
       logRetentionDays: 90,
     }),
     externalSecretAddon(),
-    argoCdAddon(env, targetRevision, workloadRepoUrl, argocdServiceType),
+    argoCdAddon(env, targetRevision, workloadRepoUrl, helm, argocdServiceType),
   ];
 }
