@@ -110,6 +110,11 @@ export async function commonAddonsForEnv(env: string): Promise<blueprints.Cluste
   const addonConfig = await getAddonConfig(env, toolsRegion);
   const managed = addonConfig.managedAddons || {};
   const helm = addonConfig.helmAddons || {};
+  const calicoAddon = helm.calicoChartVersion
+    ? new blueprints.addons.CalicoOperatorAddOn({
+        version: helm.calicoChartVersion,
+      })
+    : new blueprints.addons.CalicoOperatorAddOn();
 
   const addons: blueprints.ClusterAddOn[] = [
     new blueprints.addons.VpcCniAddOn({
@@ -123,9 +128,7 @@ export async function commonAddonsForEnv(env: string): Promise<blueprints.Cluste
     ),
     new blueprints.addons.CertManagerAddOn(),
     new blueprints.addons.MetricsServerAddOn(),
-    new blueprints.addons.CalicoOperatorAddOn({
-      version: helm.calicoChartVersion,
-    }),
+    calicoAddon,
     new ExtendedEbsCsiDriverAddOn({
       version: managed.ebsCsiVersion,
     }),
@@ -157,4 +160,3 @@ export function createClusterAddons(
     argoCdAddon(env, targetRevision, workloadRepoUrl, argocdServiceType),
   ];
 }
-
