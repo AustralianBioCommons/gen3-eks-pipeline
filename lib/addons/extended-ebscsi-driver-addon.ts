@@ -2,8 +2,8 @@ import * as blueprints from "@aws-quickstart/eks-blueprints";
 import { Construct } from "constructs";
 
 export class ExtendedEbsCsiDriverAddOn extends blueprints.EbsCsiDriverAddOn {
-    constructor() {
-        super(); // keep the managed add-on config
+    constructor(options?: blueprints.addons.EbsCsiDriverAddOnProps) {
+        super(options); // keep the managed add-on config
     }
 
     async deploy(clusterInfo: blueprints.ClusterInfo): Promise<Construct> {

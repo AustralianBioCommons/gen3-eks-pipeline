@@ -120,7 +120,6 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       new blueprints.addons.AwsLoadBalancerControllerAddOn({
         enableWafv2: true,
       }),
-      ...clusterConfig.commonAddons,
     ];
 
     const blueprint = blueprints.EksBlueprint.builder()
@@ -173,10 +172,13 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         ],
         primaryOutputDirectory: ".", // so logs are surfaced
       });
+      const commonAddOns = await clusterConfig.commonAddonsForEnv(env.name);
+
       const stageBuilder = blueprint
         .clone(region)
         .name(env.clusterName)
         .addOns(
+          ...commonAddOns,
           ...addons,
           issuerAddon,
         )
