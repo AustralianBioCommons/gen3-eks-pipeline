@@ -116,17 +116,10 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     blueprints.utils.logger.settings.minLevel = 3; // info
     blueprints.utils.userLog.settings.minLevel = 2; // debug
 
-    const addOns: Array<blueprints.ClusterAddOn> = [
-      new blueprints.addons.AwsLoadBalancerControllerAddOn({
-        enableWafv2: true,
-      }),
-    ];
-
     const blueprint = blueprints.EksBlueprint.builder()
       .name(pipelineName)
       .account(account)
-      .region(region)
-      .addOns(...addOns);
+      .region(region);
 
     // Gen3 environment stages
     const stages = await getStages(toolsRegion);

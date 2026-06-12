@@ -2,7 +2,6 @@ import * as blueprints from "@aws-quickstart/eks-blueprints";
 import * as eks from "aws-cdk-lib/aws-eks";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 
-import cluster from "cluster";
 import { toolsRegion } from "../environments";
 
 import { ExtendedEbsCsiDriverAddOn } from "../../addons/extended-ebscsi-driver-addon";
@@ -20,6 +19,13 @@ interface ManagedAddonConfig {
 interface HelmAddonConfig {
   calicoChartVersion?: string;
   argoCdChartVersion?: string;
+  awsLoadBalancerControllerChartVersion?: string;
+  awsFluentBitChartVersion?: string;
+  clusterAutoscalerChartVersion?: string;
+  externalSecretsChartVersion?: string;
+  metricsServerChartVersion?: string;
+  secretsStoreCsiDriverChartVersion?: string;
+  certManagerChartVersion?: string;
 }
 
 interface AddonConfig {
@@ -41,8 +47,13 @@ const bootstrapRepo = (
 });
 
 // Function to create the external secrets add-on configuration
-const externalSecretAddon = (): blueprints.addons.ExternalsSecretsAddOn =>
+const externalSecretAddon = (
+  helm?: HelmAddonConfig
+): blueprints.addons.ExternalsSecretsAddOn =>
   new blueprints.addons.ExternalsSecretsAddOn({
+    ...(helm?.externalSecretsChartVersion
+      ? { version: helm.externalSecretsChartVersion }
+      : {}),
     values: {
       installCRDs: true,
       webhook: { service: { enabled: true } },
@@ -124,6 +135,16 @@ export async function commonAddonsForEnv(env: string): Promise<blueprints.Cluste
     : new blueprints.addons.CalicoOperatorAddOn();
 
   const addons: blueprints.ClusterAddOn[] = [
+    new blueprints.addons.AwsLoadBalancerControllerAddOn(
+      helm.awsLoadBalancerControllerChartVersion
+        ? ({
+            enableWafv2: true,
+            version: helm.awsLoadBalancerControllerChartVersion,
+          } as any)
+        : {
+            enableWafv2: true,
+          }
+    ),
     new blueprints.addons.VpcCniAddOn({
       version: managed.vpcCniVersion,
     }),
@@ -133,15 +154,31 @@ export async function commonAddonsForEnv(env: string): Promise<blueprints.Cluste
     new blueprints.addons.CoreDnsAddOn(
       managed.coreDnsVersion
     ),
-    new blueprints.addons.CertManagerAddOn(),
-    new blueprints.addons.MetricsServerAddOn(),
+    new blueprints.addons.CertManagerAddOn(
+      helm.certManagerChartVersion
+        ? ({ version: helm.certManagerChartVersion } as any)
+        : undefined
+    ),
+    new blueprints.addons.MetricsServerAddOn(
+      helm.metricsServerChartVersion
+        ? ({ version: helm.metricsServerChartVersion } as any)
+        : undefined
+    ),
     calicoAddon,
     new ExtendedEbsCsiDriverAddOn({
       version: managed.ebsCsiVersion,
     }),
-    new blueprints.addons.SecretsStoreAddOn(),
+    new blueprints.addons.SecretsStoreAddOn(
+      helm.secretsStoreCsiDriverChartVersion
+        ? ({ version: helm.secretsStoreCsiDriverChartVersion } as any)
+        : undefined
+    ),
     new blueprints.addons.SSMAgentAddOn(),
-    new blueprints.addons.ClusterAutoScalerAddOn(),
+    new blueprints.addons.ClusterAutoScalerAddOn(
+      helm.clusterAutoscalerChartVersion
+        ? ({ version: helm.clusterAutoscalerChartVersion } as any)
+        : undefined
+    ),
   ];
 
   return addons;
@@ -158,13 +195,16 @@ export function createClusterAddons(
 ): Array<blueprints.ClusterAddOn> {
   return [
     new blueprints.addons.CloudWatchLogsAddon({
+      ...(helm?.awsFluentBitChartVersion
+        ? ({ version: helm.awsFluentBitChartVersion } as any)
+        : {}),
       namespace: "aws-for-fluent-bit",
       createNamespace: true,
       serviceAccountName: "aws-fluent-bit-for-cw-sa",
       logGroupPrefix: `/aws/eks/${env.toLowerCase()}-${clusterName}`,
       logRetentionDays: 90,
     }),
-    externalSecretAddon(),
+    externalSecretAddon(helm),
     argoCdAddon(env, targetRevision, workloadRepoUrl, helm, argocdServiceType),
   ];
 }
