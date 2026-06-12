@@ -108,6 +108,10 @@ async function getAddonConfig(env: string, region: string): Promise<AddonConfig>
   }
 }
 
+export async function getAddonConfigForEnv(env: string): Promise<AddonConfig> {
+  return getAddonConfig(env, toolsRegion);
+}
+
 // Common add-ons to be included in all clusters
 export async function commonAddonsForEnv(env: string): Promise<blueprints.ClusterAddOn[]> {
   const addonConfig = await getAddonConfig(env, toolsRegion);
@@ -149,8 +153,8 @@ export function createClusterAddons(
   clusterName: string,
   targetRevision: string,
   workloadRepoUrl: string,
-  helm?: HelmAddonConfig,
   argocdServiceType?: string,
+  helm?: HelmAddonConfig,
 ): Array<blueprints.ClusterAddOn> {
   return [
     new blueprints.addons.CloudWatchLogsAddon({
