@@ -75,7 +75,7 @@ export async function getStages(region: string): Promise<Gen3Stage[]> {
     if (envName === "tools") continue;
 
     const typedEnvConfig = envConfig as EnvironmentConfig;
-    const addonConfig = await clusterConfig.getAddonConfigForEnv(envName);
+    const clusterDetails = await clusterConfig.getClusterConfigForEnv(envName);
 
     // Conditionally include teams only if platformRoleName is present
     const stage: Gen3Stage = {
@@ -87,7 +87,7 @@ export async function getStages(region: string): Promise<Gen3Stage[]> {
         typedEnvConfig.targetRevision,
         typedEnvConfig.workloadRepoUrl,
         typedEnvConfig.argocdServiceType,
-        addonConfig.helmAddons,
+        clusterDetails.helmAddons || {},
       ),
       externalSecret: new ExternalSecretsSa(typedEnvConfig),
     };

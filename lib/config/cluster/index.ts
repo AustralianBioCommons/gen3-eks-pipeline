@@ -1,37 +1,16 @@
 import * as blueprints from "@aws-quickstart/eks-blueprints";
-import * as eks from "aws-cdk-lib/aws-eks";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 
 import { toolsRegion } from "../environments";
+import {
+  ClusterConfigDetails,
+  HelmAddonConfig,
+} from "../environments/config-interfaces";
 
 import { ExtendedEbsCsiDriverAddOn } from "../../addons/extended-ebscsi-driver-addon";
 
 // ArgoCd credential prefix in secret Manager
 const argocdCredentialName = "argocdAdmin";
-
-interface ManagedAddonConfig {
-  vpcCniVersion?: string;
-  kubeProxyVersion?: string;
-  coreDnsVersion?: string;
-  ebsCsiVersion?: string;
-}
-
-interface HelmAddonConfig {
-  calicoChartVersion?: string;
-  argoCdChartVersion?: string;
-  awsLoadBalancerControllerChartVersion?: string;
-  awsFluentBitChartVersion?: string;
-  clusterAutoscalerChartVersion?: string;
-  externalSecretsChartVersion?: string;
-  metricsServerChartVersion?: string;
-  secretsStoreCsiDriverChartVersion?: string;
-  certManagerChartVersion?: string;
-}
-
-interface AddonConfig {
-  managedAddons?: ManagedAddonConfig;
-  helmAddons?: HelmAddonConfig;
-}
 
 // Function to configure the bootstrap repository for ArgoCD
 const bootstrapRepo = (
@@ -47,13 +26,15 @@ const bootstrapRepo = (
 });
 
 // Function to create the external secrets add-on configuration
+function helmVersion(version?: string): { version: string } | undefined {
+  return version ? { version } : undefined;
+}
+
 const externalSecretAddon = (
-  helm?: HelmAddonConfig
+  helm: HelmAddonConfig
 ): blueprints.addons.ExternalsSecretsAddOn =>
   new blueprints.addons.ExternalsSecretsAddOn({
-    ...(helm?.externalSecretsChartVersion
-      ? { version: helm.externalSecretsChartVersion }
-      : {}),
+    ...helmVersion(helm.externalSecretsChartVersion),
     values: {
       installCRDs: true,
       webhook: { service: { enabled: true } },
@@ -76,11 +57,11 @@ const argoCdAddon = (
   env: string,
   targetRevision: string,
   workloadRepoUrl: string,
-  helm?: HelmAddonConfig,
+  helm: HelmAddonConfig,
   serviceType?: string
 ): blueprints.addons.ArgoCDAddOn =>
   new blueprints.addons.ArgoCDAddOn({
-    ...(helm?.argoCdChartVersion ? { version: helm.argoCdChartVersion } : {}),
+    ...helmVersion(helm.argoCdChartVersion),
     adminPasswordSecretName: `${argocdCredentialName}-${env.toLowerCase()}`,
     name: `${env}-Gen3Cluster`,
     bootstrapRepo: bootstrapRepo(env, targetRevision, workloadRepoUrl),
@@ -96,14 +77,11 @@ const argoCdAddon = (
       },
       notifications: { enabled: true, livenessProbe: { enabled: true }, readinessProbe: { enabled: true } },
       commitServer: { enabled: false },
-      helm: {
-        valueFiles: ["values.yaml", "gen3-values.yaml"],
-      },
     },
   });
 
-async function getAddonConfig(env: string, region: string): Promise<AddonConfig> {
-  const paramName = `/gen3/${env.toLowerCase()}/addon-config`;
+async function getClusterConfig(env: string, region: string): Promise<ClusterConfigDetails> {
+  const paramName = `/gen3/${env.toLowerCase()}/cluster-config`;
   const ssmClient = new SSMClient({ region });
 
   try {
@@ -113,73 +91,95 @@ async function getAddonConfig(env: string, region: string): Promise<AddonConfig>
         WithDecryption: true,
       })
     );
-    return JSON.parse(response.Parameter?.Value || "{}") as AddonConfig;
+    return JSON.parse(response.Parameter?.Value || "{}") as ClusterConfigDetails;
   } catch {
-    return {};
+    return {} as ClusterConfigDetails;
   }
 }
 
-export async function getAddonConfigForEnv(env: string): Promise<AddonConfig> {
-  return getAddonConfig(env, toolsRegion);
+export async function getClusterConfigForEnv(env: string): Promise<ClusterConfigDetails> {
+  return getClusterConfig(env, toolsRegion);
 }
 
 // Common add-ons to be included in all clusters
 export async function commonAddonsForEnv(env: string): Promise<blueprints.ClusterAddOn[]> {
-  const addonConfig = await getAddonConfig(env, toolsRegion);
-  const managed = addonConfig.managedAddons || {};
-  const helm = addonConfig.helmAddons || {};
-  const calicoAddon = helm.calicoChartVersion
-    ? new blueprints.addons.CalicoOperatorAddOn({
-        version: helm.calicoChartVersion,
-      })
-    : new blueprints.addons.CalicoOperatorAddOn();
+  const clusterConfig = await getClusterConfig(env, toolsRegion);
+  const managed = clusterConfig.managedAddons || {};
+  const helm = clusterConfig.helmAddons || {};
+  const addons: blueprints.ClusterAddOn[] = [];
 
-  const addons: blueprints.ClusterAddOn[] = [
-    new blueprints.addons.AwsLoadBalancerControllerAddOn(
-      helm.awsLoadBalancerControllerChartVersion
-        ? ({
-            enableWafv2: true,
-            version: helm.awsLoadBalancerControllerChartVersion,
-          } as any)
-        : {
-            enableWafv2: true,
-          }
-    ),
-    new blueprints.addons.VpcCniAddOn({
-      version: managed.vpcCniVersion,
-    }),
-    new blueprints.addons.KubeProxyAddOn(
-      managed.kubeProxyVersion
-    ),
-    new blueprints.addons.CoreDnsAddOn(
-      managed.coreDnsVersion
-    ),
-    new blueprints.addons.CertManagerAddOn(
-      helm.certManagerChartVersion
-        ? ({ version: helm.certManagerChartVersion } as any)
-        : undefined
-    ),
-    new blueprints.addons.MetricsServerAddOn(
-      helm.metricsServerChartVersion
-        ? ({ version: helm.metricsServerChartVersion } as any)
-        : undefined
-    ),
-    calicoAddon,
-    new ExtendedEbsCsiDriverAddOn({
-      version: managed.ebsCsiVersion,
-    }),
-    new blueprints.addons.SecretsStoreAddOn(
-      helm.secretsStoreCsiDriverChartVersion
-        ? ({ version: helm.secretsStoreCsiDriverChartVersion } as any)
-        : undefined
-    ),
-    new blueprints.addons.SSMAgentAddOn(),
-    new blueprints.addons.ClusterAutoScalerAddOn(
-      helm.clusterAutoscalerChartVersion
-        ? ({ version: helm.clusterAutoscalerChartVersion } as any)
-        : undefined
-    ),
-  ];
+  if (helm.awsLoadBalancerControllerChartVersion) {
+    addons.push(
+      new blueprints.addons.AwsLoadBalancerControllerAddOn({
+        enableWafv2: true,
+        ...helmVersion(helm.awsLoadBalancerControllerChartVersion),
+      } as any)
+    );
+  }
+
+  if (managed.vpcCniVersion) {
+    addons.push(
+      new blueprints.addons.VpcCniAddOn({
+        version: managed.vpcCniVersion,
+      })
+    );
+  }
+
+  if (managed.kubeProxyVersion) {
+    addons.push(new blueprints.addons.KubeProxyAddOn(managed.kubeProxyVersion));
+  }
+
+  if (managed.coreDnsVersion) {
+    addons.push(new blueprints.addons.CoreDnsAddOn(managed.coreDnsVersion));
+  }
+
+  if (helm.certManagerChartVersion) {
+    addons.push(
+      new blueprints.addons.CertManagerAddOn(
+        helmVersion(helm.certManagerChartVersion) as any
+      )
+    );
+  }
+
+  if (helm.metricsServerChartVersion) {
+    addons.push(
+      new blueprints.addons.MetricsServerAddOn(
+        helmVersion(helm.metricsServerChartVersion) as any
+      )
+    );
+  }
+
+  if (helm.calicoChartVersion) {
+    addons.push(
+      new blueprints.addons.CalicoOperatorAddOn(
+        helmVersion(helm.calicoChartVersion) as any
+      )
+    );
+  }
+
+  if (managed.ebsCsiVersion) {
+    addons.push(
+      new ExtendedEbsCsiDriverAddOn({
+        version: managed.ebsCsiVersion,
+      })
+    );
+  }
+
+  if (helm.secretsStoreCsiDriverChartVersion) {
+    addons.push(
+      new blueprints.addons.SecretsStoreAddOn(
+        helmVersion(helm.secretsStoreCsiDriverChartVersion) as any
+      )
+    );
+  }
+
+  if (helm.clusterAutoscalerChartVersion) {
+    addons.push(
+      new blueprints.addons.ClusterAutoScalerAddOn(
+        helmVersion(helm.clusterAutoscalerChartVersion) as any
+      )
+    );
+  }
 
   return addons;
 }
@@ -191,20 +191,32 @@ export function createClusterAddons(
   targetRevision: string,
   workloadRepoUrl: string,
   argocdServiceType?: string,
-  helm?: HelmAddonConfig,
+  helm: HelmAddonConfig = {},
 ): Array<blueprints.ClusterAddOn> {
-  return [
-    new blueprints.addons.CloudWatchLogsAddon({
-      ...(helm?.awsFluentBitChartVersion
-        ? ({ version: helm.awsFluentBitChartVersion } as any)
-        : {}),
-      namespace: "aws-for-fluent-bit",
-      createNamespace: true,
-      serviceAccountName: "aws-fluent-bit-for-cw-sa",
-      logGroupPrefix: `/aws/eks/${env.toLowerCase()}-${clusterName}`,
-      logRetentionDays: 90,
-    }),
-    externalSecretAddon(helm),
-    argoCdAddon(env, targetRevision, workloadRepoUrl, helm, argocdServiceType),
-  ];
+  const addons: blueprints.ClusterAddOn[] = [];
+
+  if (helm.awsFluentBitChartVersion) {
+    addons.push(
+      new blueprints.addons.CloudWatchLogsAddon({
+        ...helmVersion(helm.awsFluentBitChartVersion),
+        namespace: "aws-for-fluent-bit",
+        createNamespace: true,
+        serviceAccountName: "aws-fluent-bit-for-cw-sa",
+        logGroupPrefix: `/aws/eks/${env.toLowerCase()}-${clusterName}`,
+        logRetentionDays: 90,
+      } as any)
+    );
+  }
+
+  if (helm.externalSecretsChartVersion) {
+    addons.push(externalSecretAddon(helm));
+  }
+
+  if (helm.argoCdChartVersion) {
+    addons.push(
+      argoCdAddon(env, targetRevision, workloadRepoUrl, helm, argocdServiceType)
+    );
+  }
+
+  return addons;
 }

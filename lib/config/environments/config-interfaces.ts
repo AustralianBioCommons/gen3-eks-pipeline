@@ -42,10 +42,31 @@ export interface ClusterConfigDetails {
   amiReleaseVersion: string;
   instanceType: string;
   tags: Record<string, string>;
+  managedAddons?: ManagedAddonConfig;
+  helmAddons?: HelmAddonConfig;
 }
 
 export interface ClusterConfig {
   clusters: { [key: string]: ClusterConfigDetails };
+}
+
+export interface ManagedAddonConfig {
+  vpcCniVersion?: string;
+  kubeProxyVersion?: string;
+  coreDnsVersion?: string;
+  ebsCsiVersion?: string;
+}
+
+export interface HelmAddonConfig {
+  calicoChartVersion?: string;
+  argoCdChartVersion?: string;
+  awsLoadBalancerControllerChartVersion?: string;
+  awsFluentBitChartVersion?: string;
+  clusterAutoscalerChartVersion?: string;
+  externalSecretsChartVersion?: string;
+  metricsServerChartVersion?: string;
+  secretsStoreCsiDriverChartVersion?: string;
+  certManagerChartVersion?: string;
 }
 
 export interface RepoConfigBase {
