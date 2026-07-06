@@ -94,6 +94,8 @@ async function getClusterConfig(env: string, region: string) {
 
 export function getKubernetesVersion(version: string): KubernetesVersion {
   switch (version) {
+    case "1.36":
+      return KubernetesVersion.V1_36;
     case "1.35":
       return KubernetesVersion.V1_35;
     case "1.34":
