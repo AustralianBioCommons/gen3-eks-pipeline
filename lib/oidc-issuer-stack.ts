@@ -19,13 +19,13 @@ export interface OidcIssuerStackProps extends cdk.StackProps {
 
 export class OidcIssuerStack extends cdk.Stack {
   public readonly oidcIssuer: string;
-  public readonly env: cdk.Environment;
+  // public readonly env: cdk.Environment;
 
   constructor(scope: Construct, id: string, props: OidcIssuerStackProps) {
     super(scope, id, props);
 
     const { clusterName, oidcIssuerParameter } = props;
-    this.env = props.env
+    // this.env = props.env
 
     const envKey = `${props.namespace}-${props.clusterName}`;
 
