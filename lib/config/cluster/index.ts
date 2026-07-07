@@ -1,7 +1,5 @@
 import * as blueprints from "@aws-quickstart/eks-blueprints";
-import * as eks from "aws-cdk-lib/aws-eks";
 
-import cluster from "cluster";
 
 import { ExtendedEbsCsiDriverAddOn } from "../../addons/extended-ebscsi-driver-addon";
 
