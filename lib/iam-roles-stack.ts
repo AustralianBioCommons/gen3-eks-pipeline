@@ -22,14 +22,14 @@ interface PermissionsConfig {
 }
 
 export class IamRolesStack extends cdk.Stack {
-  public readonly env: cdk.Environment;
+  public readonly envKey: cdk.Environment;
 
   constructor(scope: Construct, id: string, props: IamRolesStackProps) {
     super(scope, id, props);
 
     this.addDependency(props.oidcIssuerStack);
 
-    this.env = props.buildEnv.aws;
+    this.envKey = props.buildEnv.aws;
 
     const namespace = props.buildEnv.namespace;
     const oidcIssuerParameter = `/gen3/${props.buildEnv.name}/oidcIssuer`;
