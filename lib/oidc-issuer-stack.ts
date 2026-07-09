@@ -61,7 +61,7 @@ export class OidcIssuerStack extends cdk.Stack {
           "ssm:GetParameters",
         ],
         resources: [
-          `arn:aws:ssm:${this.region}:${this.account}:parameter${oidcIssuerParameter}`,
+          `arn:aws:ssm:${this.region}:${this.account}:parameter/${oidcIssuerParameter}`,
           `arn:aws:eks:${this.region}:${this.account}:cluster/${clusterName}`,
         ],
         effect: iam.Effect.ALLOW,
