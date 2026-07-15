@@ -71,7 +71,7 @@ async function main() {
     };
 
     console.log(`🚀 Deploying EKS with CI/CD Pipeline as '${stackName}'...`);
-    new Gen3EksPipelineStack().buildAsync(app, stackName, props);
+    await new Gen3EksPipelineStack().buildAsync(app, stackName, props);
 
   } else {
     const envName = app.node.tryGetContext("envName") || "uat";

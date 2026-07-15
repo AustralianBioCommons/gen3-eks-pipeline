@@ -12,7 +12,7 @@ import {
   toolsRegion
 } from "./config/environments";
 import * as clusterConfig from "./config/cluster";
-import { gen3ClusterProvider } from "./config/cluster/cluster-provider";
+import { buildClusterProviderFromConfig, getClusterConfig } from "./config/cluster/cluster-provider";
 import { buildPolicyStatements } from "./iam";
 import { IamRolesStack } from "./iam-roles-stack";
 import {
@@ -116,21 +116,26 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     blueprints.utils.logger.settings.minLevel = 3; // info
     blueprints.utils.userLog.settings.minLevel = 2; // debug
 
-    const addOns: Array<blueprints.ClusterAddOn> = [
-      new blueprints.addons.AwsLoadBalancerControllerAddOn({
-        enableWafv2: true,
-      }),
-      ...clusterConfig.commonAddons,
-    ];
-
+    // Common add-ons (incl. the AWS Load Balancer Controller) are now
+    // resolved per environment inside the stage loop, so each env can pin
+    // its own addon/chart versions via /gen3/<env>/cluster-config. The
+    // addon set and order are unchanged when no versions are configured.
     const blueprint = blueprints.EksBlueprint.builder()
       .name(pipelineName)
       .account(account)
-      .region(region)
-      .addOns(...addOns);
+      .region(region);
 
     // Gen3 environment stages
     const stages = await getStages(toolsRegion);
+
+    // Pre-fetch cluster configs before creating any constructs
+    const clusterConfigByEnv = new Map<string, any>();
+    await Promise.all(
+      stages.map(async ({ env }) => {
+        const cfg = await getClusterConfig(env.name, toolsRegion);
+        clusterConfigByEnv.set(env.name, cfg);
+      })
+    );
 
     console.log(stages)
 
@@ -152,10 +157,13 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         stringValue: env.hostname || 'gen3 hostname',
       });
 
+      const envKey = `${env.project}-${env.name}`;
+
       const issuerAddon = new OidcIssuerAddOn(
-        env.namespace,
+        envKey,
         `/gen3/${env.namespace}-${env.clusterName}/oidcIssuer`,
-        env.aws
+        env.aws,
+        env.clusterName,
       );
 
       const ssmParam = `/gen3/${env.name}/cluster-config`;
@@ -173,10 +181,15 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         ],
         primaryOutputDirectory: ".", // so logs are surfaced
       });
+      const commonAddOns = clusterConfig.commonAddonsFromConfig(
+        clusterConfigByEnv.get(env.name) ?? {}
+      );
+
       const stageBuilder = blueprint
         .clone(region)
         .name(env.clusterName)
         .addOns(
+          ...commonAddOns,
           ...addons,
           issuerAddon,
         )
@@ -184,9 +197,10 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           // We check if env.clusterSubnets and env.nodeGroupSubnets are defined.
           // If they are, it calls this.subnetsSelection to create a subnet selection;
           // otherwise, it passes undefined to gen3ClusterProvider
-          await gen3ClusterProvider(
+          buildClusterProviderFromConfig(
             env.name,
             env.clusterName,
+            clusterConfigByEnv.get(env.name),
             env.clusterSubnets
               ? this.subnetsSelection(env.clusterSubnets, "cluster")
               : undefined,
@@ -201,12 +215,28 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         )
         .withEnv(env.aws);
 
-      // Conditionally embed IAM roles **only** for allow-listed envs
-      if (embedAllow.has(env.name)) {
+      // Conditionally embed IAM roles. Precedence:
+      //   1. `embedIamRoles` in this env's /gen3/<env>/cluster-config
+      //      (per project — each pipeline reads its own tools account)
+      //   2. cdk.json `embedIamRolesAllowlist` (legacy, shared across
+      //      projects; env-name keyed, so unreliable in a mixed fleet)
+      // Migration end state: every env resolves to false, then this
+      // whole block and IamRolesAddOn are deleted.
+      const envCfg = clusterConfigByEnv.get(env.name) ?? {};
+      const embedIamRoles =
+        envCfg.embedIamRoles !== undefined
+          ? envCfg.embedIamRoles
+          : embedAllow.has(env.name);
+
+      if (embedIamRoles) {
         stageBuilder.addOns(new IamRolesAddOn(env.name, env.namespace));
-        blueprints.utils.logger.info(`IAM roles: EMBEDDED for env "${env.name}"`);
+        blueprints.utils.logger.info(
+          `IAM roles: EMBEDDED for env "${env.name}" (source: ${envCfg.embedIamRoles !== undefined ? "cluster-config" : "cdk.json allowlist"})`
+        );
       } else {
-        blueprints.utils.logger.info(`IAM roles: SKIPPED for env "${env.name}" (managed externally)`);
+        blueprints.utils.logger.info(
+          `IAM roles: SKIPPED for env "${env.name}" — managed externally (source: ${envCfg.embedIamRoles !== undefined ? "cluster-config" : "cdk.json allowlist"})`
+        );
       }
 
       // Conditionally add teams only if platformRoleName is defined
@@ -230,12 +260,12 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       });
     }
 
-    pipelineStack.build(scope, `${id}-stack`, { env: envValues.tools.aws });
-
-
-    // Event Bus stacks for each each environment
+    // Event Bus stacks for each environment (add before pipeline build to avoid
+    // modifying the construct tree after any synth invoked by pipeline build).
     // account is the source (tools) account here
     this.addEventBusStack(scope, envValues);
+
+    pipelineStack.build(scope, `${id}-stack`, { env: envValues.tools.aws });
   }
 
   private subnetsSelection(subnetIds: string[], type: string) {

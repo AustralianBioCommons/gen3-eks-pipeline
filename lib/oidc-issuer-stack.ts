@@ -15,19 +15,18 @@ export interface OidcIssuerStackProps extends cdk.StackProps {
   namespace: string;
   oidcIssuerParameter: string;
   refreshToken?: string;
+  envKey: string;
 }
 
 export class OidcIssuerStack extends cdk.Stack {
   public readonly oidcIssuer: string;
-  public readonly env: cdk.Environment;
 
   constructor(scope: Construct, id: string, props: OidcIssuerStackProps) {
     super(scope, id, props);
 
     const { clusterName, oidcIssuerParameter } = props;
-    this.env = props.env
 
-    const envKey = `${props.namespace}-${props.clusterName}`;
+    const envKey = props.envKey;
 
     // Lambda function to fetch OIDC issuer and set in SSM
     const fetchOidcIssuerLambda = new NodejsFunction(
@@ -54,19 +53,37 @@ export class OidcIssuerStack extends cdk.Stack {
     // Grant permissions for Lambda to write to SSM
     fetchOidcIssuerLambda.addToRolePolicy(
       new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
         actions: [
           "ssm:PutParameter",
-          "eks:DescribeCluster",
           "ssm:GetParameter",
           "ssm:GetParameters",
+          "ssm:DeleteParameter",
+          "ssm:AddTagsToResource",
         ],
         resources: [
-          `arn:aws:ssm:${this.region}:${this.account}:parameter${oidcIssuerParameter}`,
-          `arn:aws:eks:${this.region}:${this.account}:cluster/${clusterName}`,
+          this.formatArn({
+            service: "ssm",
+            resource: "parameter",
+            resourceName: `gen3/*`,
+          }),
         ],
-        effect: iam.Effect.ALLOW,
       })
     );
+
+    fetchOidcIssuerLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["eks:DescribeCluster"],
+        resources: [
+          this.formatArn({
+            service: "eks",
+            resource: "cluster",
+            resourceName: clusterName,
+          }),
+        ],
+      })
+    )
 
     // Custom resource to invoke Lambda and fetch OIDC issuer
     const oidcIssuerResource = new cr.AwsCustomResource(
