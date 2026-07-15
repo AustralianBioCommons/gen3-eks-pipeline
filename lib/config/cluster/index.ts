@@ -130,32 +130,69 @@ export function commonAddonsFromConfig(
   const managed: ManagedAddonConfig = cfg.managedAddons ?? {};
   const helm: HelmAddonConfig = cfg.helmAddons ?? {};
 
+  const requiredManagedAddons = {
+    vpcCniVersion: managed.vpcCniVersion,
+    kubeProxyVersion: managed.kubeProxyVersion,
+    coreDnsVersion: managed.coreDnsVersion,
+    ebsCsiVersion: managed.ebsCsiVersion,
+  };
+
+  const missingManagedAddons = Object.entries(requiredManagedAddons)
+    .filter(([, version]) => !version)
+    .map(([name]) => name);
+
+  if (missingManagedAddons.length > 0) {
+    throw new Error(
+      `Missing managed add-on versions: ${missingManagedAddons.join(", ")}. ` +
+      "Managed add-on versions must be pinned for EKS Blueprints pipeline stages."
+    );
+  }
+
+  validateKubeProxyVersion(
+    cfg.version,
+    managed.kubeProxyVersion
+  );
+
   return [
     new blueprints.addons.AwsLoadBalancerControllerAddOn({
       enableWafv2: true,
       ...helmVersion(helm.awsLoadBalancerControllerChartVersion),
     } as any),
-    new blueprints.addons.VpcCniAddOn(
-      managed.vpcCniVersion ? { version: managed.vpcCniVersion } : undefined
+
+    new blueprints.addons.VpcCniAddOn({
+      version: managed.vpcCniVersion!,
+    }),
+
+    new blueprints.addons.KubeProxyAddOn(
+      managed.kubeProxyVersion!
     ),
-    new blueprints.addons.KubeProxyAddOn(managed.kubeProxyVersion),
-    new blueprints.addons.CoreDnsAddOn(managed.coreDnsVersion),
+
+    new blueprints.addons.CoreDnsAddOn(
+      managed.coreDnsVersion!
+    ),
+
     new blueprints.addons.CertManagerAddOn(
       helmVersion(helm.certManagerChartVersion) as any
     ),
+
     new blueprints.addons.MetricsServerAddOn(
       helmVersion(helm.metricsServerChartVersion) as any
     ),
+
     new blueprints.addons.CalicoOperatorAddOn(
       helmVersion(helm.calicoChartVersion) as any
     ),
-    new ExtendedEbsCsiDriverAddOn(
-      managed.ebsCsiVersion ? { version: managed.ebsCsiVersion } : undefined
-    ),
+
+    new ExtendedEbsCsiDriverAddOn({
+      version: managed.ebsCsiVersion!,
+    }),
+
     new blueprints.addons.SecretsStoreAddOn(
       helmVersion(helm.secretsStoreCsiDriverChartVersion) as any
     ),
+
     new blueprints.addons.SSMAgentAddOn(),
+
     new blueprints.addons.ClusterAutoScalerAddOn(
       helmVersion(helm.clusterAutoscalerChartVersion) as any
     ),
@@ -183,4 +220,22 @@ export function createClusterAddons(
     externalSecretAddon(helm),
     argoCdAddon(env, targetRevision, workloadRepoUrl, helm, argocdServiceType),
   ];
+}
+
+function validateKubeProxyVersion(
+  kubernetesVersion: string | undefined,
+  kubeProxyVersion: string | undefined
+): void {
+  if (!kubernetesVersion || !kubeProxyVersion) {
+    return;
+  }
+
+  const expectedPrefix = `v${kubernetesVersion}.`;
+
+  if (!kubeProxyVersion.startsWith(expectedPrefix)) {
+    throw new Error(
+      `kube-proxy ${kubeProxyVersion} does not match EKS ${kubernetesVersion}. ` +
+      `Expected a version beginning with ${expectedPrefix}`
+    );
+  }
 }
