@@ -102,6 +102,7 @@ export interface HelmAddonConfig {
   metricsServerChartVersion?: string;
   secretsStoreCsiDriverChartVersion?: string;
   certManagerChartVersion?: string;
+  argoCdManageConfigMaps?: boolean;
 }
 
 export interface NodeGroupTaintConfig {
@@ -140,10 +141,10 @@ export interface RepoConfigBase {
 
 export type RepoConfig =
   | (RepoConfigBase & {
-      codeStarConnectionArn: string;
-      credentialsSecretName?: undefined;
-    })
+    codeStarConnectionArn: string;
+    credentialsSecretName?: undefined;
+  })
   | (RepoConfigBase & {
-      credentialsSecretName: string;
-      codeStarConnectionArn?: undefined;
-    });
+    credentialsSecretName: string;
+    codeStarConnectionArn?: undefined;
+  });

@@ -80,8 +80,8 @@ const argoCdAddon = (
         },
       },
       configs: {
-        cm: { create: false },
-        rbac: { create: false },
+        cm: { create: helm.argoCdManageConfigMaps ?? false },
+        rbac: { create: helm.argoCdManageConfigMaps ?? false },
       },
       notifications: {
         enabled: true,
