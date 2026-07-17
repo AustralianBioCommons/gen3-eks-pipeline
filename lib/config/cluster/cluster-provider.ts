@@ -39,8 +39,6 @@ export function buildClusterProviderFromConfig(
     clusterConfig.generalNodeGroupId ?? `mng-${env.toLowerCase()}-1`;
 
   const managedNodeGroups: blueprints.ManagedNodeGroup[] = [
-    // General node group: kept byte-for-byte compatible with what the
-    // iam-roles-removal branch deployed (aside from the configurable id).
     {
       id: generalNodeGroupId,
       minSize: clusterConfig.minSize,
@@ -59,12 +57,19 @@ export function buildClusterProviderFromConfig(
   const workspaceConfig = clusterConfig.workspaceNodeGroup;
 
   if (workspaceConfig && workspaceConfig.enabled !== false) {
+    const workspaceNodeGroupSubnets = nodeGroupSubnets || vpcSubnets;
+
     managedNodeGroups.push({
       id: `mng-${env.toLowerCase()}-workspace`,
+
       minSize: workspaceConfig.minSize,
       maxSize: workspaceConfig.maxSize,
       desiredSize: workspaceConfig.desiredSize,
-      amiReleaseVersion: workspaceConfig.amiReleaseVersion,
+
+      amiReleaseVersion:
+        workspaceConfig.amiReleaseVersion ??
+        clusterConfig.amiReleaseVersion,
+
       instanceTypes: workspaceConfig.instanceTypes.map(
         (instanceType) => new ec2.InstanceType(instanceType)
       ),
@@ -76,25 +81,39 @@ export function buildClusterProviderFromConfig(
           ? CapacityType.SPOT
           : CapacityType.ON_DEMAND,
 
-      nodeGroupSubnets: nodeGroupSubnets || undefined,
+      nodeGroupSubnets: workspaceNodeGroupSubnets || undefined,
 
-      labels: {
-        workload: "workspace",
-        ...(workspaceConfig.labels ?? {}),
+      /*
+             * Labels and taints are SSM-configurable with defaults matching the
+             * hatchery contract. Non-GPU workspace pods are created with:
+             *
+             *   nodeSelector:            tolerations:
+             *     role: jupyter            - key: role
+             *                                value: jupyter
+             *                                effect: NoSchedule
+             *
+             * When neither field is set in cluster-config, the defaults below
+             * satisfy that contract exactly. If you override taints in SSM, you
+             * almost certainly must override labels to match (and vice versa) —
+             * a custom taint with the default label makes hatchery pods target
+             * nodes they cannot tolerate.
+             */
+      labels: workspaceConfig.labels ?? {
+        role: "jupyter",
       },
 
       taints: (
         workspaceConfig.taints ?? [
           {
-            key: "workload",
-            value: "workspace",
-            effect: "NO_SCHEDULE",
+            key: "role",
+            value: "jupyter",
+            effect: "NO_SCHEDULE" as const,
           },
         ]
       ).map((taint) => ({
         key: taint.key,
         value: taint.value,
-        effect: mapTaintEffect(taint.effect as NodeGroupTaintConfig["effect"]),
+        effect: mapTaintEffect(taint.effect),
       })),
 
       launchTemplate: createLaunchTemplate(workspaceConfig.diskSize),
@@ -149,6 +168,22 @@ function mapTaintEffect(
   }
 }
 
+
+function validateAmiReleaseVersion(
+  nodeGroupName: string,
+  amiReleaseVersion: string | undefined,
+  clusterVersion: string
+): void {
+  if (!amiReleaseVersion) return; // unset = unpinned, nodes take latest at launch
+  if (!amiReleaseVersion.startsWith(`${clusterVersion}.`)) {
+    throw new Error(
+      `${nodeGroupName} amiReleaseVersion ${amiReleaseVersion} does not match EKS ${clusterVersion}. ` +
+      `Expected a version beginning with ${clusterVersion}.`
+    );
+  }
+}
+
+
 function validateClusterConfig(config: ClusterConfigDetails): void {
   if (!config.version) {
     throw new Error("Cluster configuration is missing version");
@@ -177,6 +212,28 @@ function validateClusterConfig(config: ClusterConfigDetails): void {
       workspace.minSize,
       workspace.maxSize,
       workspace.desiredSize
+    );
+    if (workspace.taints) {
+      if (workspace.taints.length === 0) {
+        throw new Error(
+          "Workspace node group taints, when set, cannot be an empty list; " +
+          "omit the field to use the default role=jupyter:NoSchedule taint"
+        );
+      }
+
+      for (const taint of workspace.taints) {
+        if (!taint.key || taint.key.trim().length === 0) {
+          throw new Error(
+            "Workspace node group taints cannot contain empty keys"
+          );
+        }
+      }
+    }
+
+    validateAmiReleaseVersion(
+      "workspace node group",
+      workspace.amiReleaseVersion ?? config.amiReleaseVersion,
+      config.version
     );
 
     if (!workspace.instanceTypes || workspace.instanceTypes.length === 0) {
