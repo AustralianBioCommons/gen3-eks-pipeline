@@ -51,6 +51,7 @@ export function buildClusterProviderFromConfig(
       nodeGroupCapacityType: CapacityType.ON_DEMAND,
       nodeGroupSubnets: nodeGroupSubnets || undefined,
       launchTemplate: createLaunchTemplate(clusterConfig.diskSize),
+      amiReleaseVersion: clusterConfig.amiReleaseVersion,
       tags: clusterConfig.tags,
     },
   ];
@@ -63,7 +64,7 @@ export function buildClusterProviderFromConfig(
       minSize: workspaceConfig.minSize,
       maxSize: workspaceConfig.maxSize,
       desiredSize: workspaceConfig.desiredSize,
-
+      amiReleaseVersion: workspaceConfig.amiReleaseVersion,
       instanceTypes: workspaceConfig.instanceTypes.map(
         (instanceType) => new ec2.InstanceType(instanceType)
       ),

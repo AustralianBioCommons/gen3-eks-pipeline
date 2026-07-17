@@ -39,7 +39,7 @@ export interface ClusterConfigDetails {
   maxSize: number;
   desiredSize: number;
   diskSize: number;
-  amiReleaseVersion: string;
+  amiReleaseVersion?: string;
   instanceType: string;
   tags: Record<string, string>;
   /**
@@ -127,6 +127,7 @@ export interface WorkspaceNodeGroupConfig {
   labels?: Record<string, string>;
   taints?: NodeGroupTaintConfig[];
   tags?: Record<string, string>;
+  amiReleaseVersion?: string;
 }
 
 export interface ClusterConfig {
