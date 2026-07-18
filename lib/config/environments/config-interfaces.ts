@@ -118,16 +118,65 @@ export interface NodeGroupTaintConfig {
  */
 export interface WorkspaceNodeGroupConfig {
   enabled?: boolean;
+
+  /**
+   * Default scaling values. Individual subnet groups may override them.
+   */
   minSize: number;
   maxSize: number;
   desiredSize?: number;
+
   diskSize: number;
+
   instanceTypes: string[];
+
   capacityType?: "ON_DEMAND" | "SPOT";
-  labels?: Record<string, string>;
-  taints?: NodeGroupTaintConfig[];
-  tags?: Record<string, string>;
+
   amiReleaseVersion?: string;
+
+  labels?: Record<string, string>;
+
+  taints?: NodeGroupTaintConfig[];
+
+  tags?: Record<string, string>;
+
+  /**
+   * One workspace managed node group is created per entry.
+   */
+  subnetGroups: WorkspaceSubnetNodeGroupConfig[];
+}
+
+export interface WorkspaceSubnetNodeGroupConfig {
+  /**
+   * Short unique name used in the EKS node-group identifier.
+   *
+   * Examples:
+   * - "2a"
+   * - "2b"
+   * - "2c"
+   */
+  name: string;
+
+  /**
+   * Exactly one private subnet for this workspace node group.
+   *
+   * Since a subnet belongs to one AZ, this makes the node group zonal.
+   */
+  subnetId: string;
+
+  /**
+   * Optional per-subnet scaling overrides.
+   *
+   * When omitted, the values from WorkspaceNodeGroupConfig are used.
+   */
+  minSize?: number;
+  maxSize?: number;
+  desiredSize?: number;
+
+  /**
+   * Optional tags added only to this subnet's node group.
+   */
+  tags?: Record<string, string>;
 }
 
 export interface ClusterConfig {
@@ -149,3 +198,4 @@ export type RepoConfig =
     credentialsSecretName: string;
     codeStarConnectionArn?: undefined;
   });
+

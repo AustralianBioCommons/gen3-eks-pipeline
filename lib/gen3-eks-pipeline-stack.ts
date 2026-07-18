@@ -198,6 +198,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
           // If they are, it calls this.subnetsSelection to create a subnet selection;
           // otherwise, it passes undefined to gen3ClusterProvider
           buildClusterProviderFromConfig(
+            this,
             env.name,
             env.clusterName,
             clusterConfigByEnv.get(env.name),
