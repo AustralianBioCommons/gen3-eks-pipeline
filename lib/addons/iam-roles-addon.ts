@@ -93,12 +93,26 @@ export class IamRolesAddOn implements blueprints.ClusterAddOn {
               })
             );
           }
+
+          // Non-destructive removal: when an env is later removed from
+          // `embedIamRolesAllowlist`, CloudFormation deletes this nested
+          // stack. RETAIN keeps the physical roles alive so pods using
+          // IRSA keep working while role management moves to the
+          // external repos. NOTE: Retain only protects an env once this
+          // policy has been DEPLOYED there — deploy with the env still
+          // allow-listed first, remove it from the list in a later
+          // deploy.
+          role.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
         }
       }
     }
 
     // Deploy IAM Roles Stack and return it
-    return new IamRolesStack(stack, "IamRolesStack", namespace);
+    const iamRolesStack = new IamRolesStack(stack, "IamRolesStack", namespace);
+    iamRolesStack.nestedStackResource?.applyRemovalPolicy(
+      cdk.RemovalPolicy.RETAIN
+    );
+    return iamRolesStack;
   }
 
   // Helper function to fetch permissions config from SSM

@@ -19,7 +19,11 @@ export const buildPolicyStatements = [
       "ssm:GetParameter",
       "cloudformation:CreateStack",
       "cloudformation:UpdateStack",
-      "cloudformation:DeleteStack",     
+      "cloudformation:DeleteStack",
+      "eks:DescribeAddonVersions",
+      "eks:DescribeCluster",
+      "eks:ListAddons",
+      "eks:DescribeAddon",     
     ],
     resources: ["*"], // Optionally refine specific resources where possible.
   }),
