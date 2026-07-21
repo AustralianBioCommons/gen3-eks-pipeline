@@ -24,7 +24,7 @@ export class OidcIssuerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: OidcIssuerStackProps) {
     super(scope, id, props);
 
-    const { clusterName, oidcIssuerParameter } = props;
+    const { clusterName } = props;
 
     const envKey = props.envKey;
 

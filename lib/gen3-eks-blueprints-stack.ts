@@ -22,16 +22,6 @@ export class Gen3EksBlueprintsStack extends cdk.Stack {
       throw new Error(`VPC ID is missing in envConfig.json for environment: ${props.envName}`);
     }
 
-    // Lookup the existing VPC
-    const vpc = ec2.Vpc.fromLookup(this, `Vpc-${props.envName}`, {
-      vpcId: envConfig.vpcId,
-    });
-
-    // Select private subnets for cluster and nodes
-    const clusterSubnets = envConfig.clusterSubnets?.map((subnetId) =>
-      ec2.Subnet.fromSubnetId(this, `Subnet-${subnetId}-cluster`, subnetId)
-    ) || vpc.privateSubnets;
-
 
     const nodeGroupSubnets = this.subnetsSelection(envConfig.nodeGroupSubnets!, "cluster") || undefined
 
@@ -54,7 +44,7 @@ export class Gen3EksBlueprintsStack extends cdk.Stack {
       .addOns(...addOns)
       .clusterProvider(
         new blueprints.GenericClusterProvider({
-          version, 
+          version,
           managedNodeGroups: [
             {
               id: `${props.envName}-nodegroup`,

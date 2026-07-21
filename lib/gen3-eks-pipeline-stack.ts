@@ -14,7 +14,6 @@ import {
 import * as clusterConfig from "./config/cluster";
 import { buildClusterProviderFromConfig, getClusterConfig } from "./config/cluster/cluster-provider";
 import { buildPolicyStatements } from "./iam";
-import { IamRolesStack } from "./iam-roles-stack";
 import {
   getStages,
   validateParameter,
@@ -22,9 +21,9 @@ import {
   addCredentialsOrConnectionArn,
 } from "./config/environments";
 import {
-  EnvironmentConfig,
   Config,
   RepoConfig,
+  ClusterConfigDetails,
 } from "./config/environments/config-interfaces";
 import { Gen3ConfigEventsStack } from "./gen3-config-events-stack";
 import { OidcIssuerAddOn } from "./addons/oidc-issuer-addon";
@@ -129,7 +128,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
     const stages = await getStages(toolsRegion);
 
     // Pre-fetch cluster configs before creating any constructs
-    const clusterConfigByEnv = new Map<string, any>();
+    const clusterConfigByEnv = new Map<string, ClusterConfigDetails>();
     await Promise.all(
       stages.map(async ({ env }) => {
         const cfg = await getClusterConfig(env.name, toolsRegion);
@@ -149,6 +148,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
 
     const embedAllow = getEmbedAllowlist(this);
 
+
     // Add stages dynamically
     for (const { id, env, teams, externalSecret, addons } of stages) {
 
@@ -156,6 +156,11 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         parameterName: `/gen3/${env.project || env.name}/${env.name}/hostname`,
         stringValue: env.hostname || 'gen3 hostname',
       });
+
+      const clusterCfg = clusterConfigByEnv.get(env.name);
+      if (!clusterCfg) {
+        throw new Error(`Missing pre-fetched cluster config for env "${env.name}"`);
+      }
 
       const envKey = `${env.project}-${env.name}`;
 
@@ -182,7 +187,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
         primaryOutputDirectory: ".", // so logs are surfaced
       });
       const commonAddOns = clusterConfig.commonAddonsFromConfig(
-        clusterConfigByEnv.get(env.name) ?? {}
+        clusterCfg ?? {}
       );
 
       const stageBuilder = blueprint
@@ -201,7 +206,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
             this,
             env.name,
             env.clusterName,
-            clusterConfigByEnv.get(env.name),
+            clusterCfg,
             env.clusterSubnets
               ? this.subnetsSelection(env.clusterSubnets, "cluster")
               : undefined,
@@ -223,7 +228,7 @@ export class Gen3EksPipelineStack extends cdk.Stack {
       //      projects; env-name keyed, so unreliable in a mixed fleet)
       // Migration end state: every env resolves to false, then this
       // whole block and IamRolesAddOn are deleted.
-      const envCfg = clusterConfigByEnv.get(env.name) ?? {};
+      const envCfg: Partial<ClusterConfigDetails> = clusterCfg ?? {};
       const embedIamRoles =
         envCfg.embedIamRoles !== undefined
           ? envCfg.embedIamRoles

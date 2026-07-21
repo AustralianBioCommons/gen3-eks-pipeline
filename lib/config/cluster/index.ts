@@ -157,7 +157,7 @@ export function commonAddonsFromConfig(
     new blueprints.addons.AwsLoadBalancerControllerAddOn({
       enableWafv2: true,
       ...helmVersion(helm.awsLoadBalancerControllerChartVersion),
-    } as any),
+    }),
 
     new blueprints.addons.VpcCniAddOn({
       version: managed.vpcCniVersion!,
@@ -172,15 +172,15 @@ export function commonAddonsFromConfig(
     ),
 
     new blueprints.addons.CertManagerAddOn(
-      helmVersion(helm.certManagerChartVersion) as any
+      helmVersion(helm.certManagerChartVersion)
     ),
 
     new blueprints.addons.MetricsServerAddOn(
-      helmVersion(helm.metricsServerChartVersion) as any
+      helmVersion(helm.metricsServerChartVersion)
     ),
 
     new blueprints.addons.CalicoOperatorAddOn(
-      helmVersion(helm.calicoChartVersion) as any
+      helmVersion(helm.calicoChartVersion)
     ),
 
     new ExtendedEbsCsiDriverAddOn({
@@ -188,13 +188,13 @@ export function commonAddonsFromConfig(
     }),
 
     new blueprints.addons.SecretsStoreAddOn(
-      helmVersion(helm.secretsStoreCsiDriverChartVersion) as any
+      helmVersion(helm.secretsStoreCsiDriverChartVersion)
     ),
 
     new blueprints.addons.SSMAgentAddOn(),
 
     new blueprints.addons.ClusterAutoScalerAddOn(
-      helmVersion(helm.clusterAutoscalerChartVersion) as any
+      helmVersion(helm.clusterAutoscalerChartVersion)
     ),
   ];
 }
@@ -216,7 +216,7 @@ export function createClusterAddons(
       serviceAccountName: "aws-fluent-bit-for-cw-sa",
       logGroupPrefix: `/aws/eks/${env.toLowerCase()}-${clusterName}`,
       logRetentionDays: 90,
-    } as any),
+    }),
     externalSecretAddon(helm),
     argoCdAddon(env, targetRevision, workloadRepoUrl, helm, argocdServiceType),
   ];
