@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.4.0](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.3.1...v1.4.0) (2026-07-21)
+
+
+### Features
+
+* per-env configurable managed/helm add-on versions via cluster-config ([ba1f733](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/ba1f733195576801e34105c1b4d0ae6f5fbd5bc8))
+
+
+### Bug Fixes
+
+* ami version ([21c7109](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/21c71098343c10b6451d0e534ccabd740a56d7a8))
+* argocd cm mgmnt ([f0b474f](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/f0b474f4f366ef04791d1d2f51af3865676e0bde))
+* temporary disable addon check ([ba732ea](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/ba732ea3f9484d58a9e13efb08ddf9f34c70d1a9))
+* update workspace node labels ([da79b76](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/da79b769b7b433151ae0feb636be077324fd20f4))
+* update workspace nodegroup ([d13d853](https://github.com/AustralianBioCommons/gen3-eks-pipeline/commit/d13d8536fce423a7dd4d6c4ec7379aa04e6208cf))
+
 ## [1.3.1](https://github.com/AustralianBioCommons/gen3-eks-pipeline/compare/v1.3.0...v1.3.1) (2025-09-25)
 
 
