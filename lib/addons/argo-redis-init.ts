@@ -1,7 +1,6 @@
 // lib/addons/argo-redis-init.ts
 import { ClusterAddOn, ClusterInfo } from "@aws-quickstart/eks-blueprints";
 import * as eks from "aws-cdk-lib/aws-eks";
-import * as cdk from "aws-cdk-lib";
 
 export interface ArgoRedisInitRbacProps {
   /** Namespace where Argo CD lives. */
@@ -19,7 +18,7 @@ export interface ArgoRedisInitRbacProps {
  * get/list/watch/create/update/patch secrets in the argocd namespace.
  */
 export class ArgoRedisInitRbacAddOn implements ClusterAddOn {
-  constructor(private readonly props: ArgoRedisInitRbacProps = {}) {}
+  constructor(private readonly props: ArgoRedisInitRbacProps = {}) { }
 
   deploy(clusterInfo: ClusterInfo): void {
     const ns = this.props.namespace ?? "argocd";
