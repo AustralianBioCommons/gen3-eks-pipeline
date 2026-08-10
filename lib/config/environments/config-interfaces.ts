@@ -94,6 +94,8 @@ export interface ManagedAddonConfig {
  */
 export interface HelmAddonConfig {
   calicoChartVersion?: string;
+  /** Install the separate Calico CRD chart before tigera-operator (required for fresh Calico 3.32+ clusters). */
+  calicoInstallCrds?: boolean;
   argoCdChartVersion?: string;
   awsLoadBalancerControllerChartVersion?: string;
   awsFluentBitChartVersion?: string;

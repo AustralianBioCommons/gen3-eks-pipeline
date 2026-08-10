@@ -9,6 +9,7 @@ import {
 import { getClusterConfig } from "./cluster-provider";
 
 import { ExtendedEbsCsiDriverAddOn } from "../../addons/extended-ebscsi-driver-addon";
+import { CalicoOperatorWithCrdsAddOn } from "../../addons/calico-operator-addon";
 
 // ArgoCd credential prefix in secret Manager
 const argocdCredentialName = "argocdAdmin";
@@ -179,9 +180,13 @@ export function commonAddonsFromConfig(
       helmVersion(helm.metricsServerChartVersion)
     ),
 
-    new blueprints.addons.CalicoOperatorAddOn(
-      helmVersion(helm.calicoChartVersion)
-    ),
+    helm.calicoInstallCrds
+      ? new CalicoOperatorWithCrdsAddOn({
+          version: helm.calicoChartVersion,
+        })
+      : new blueprints.addons.CalicoOperatorAddOn(
+          helmVersion(helm.calicoChartVersion)
+        ),
 
     new ExtendedEbsCsiDriverAddOn({
       version: managed.ebsCsiVersion!,
