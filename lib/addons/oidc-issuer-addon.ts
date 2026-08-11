@@ -73,48 +73,18 @@ export class OidcIssuerAddOn implements blueprints.ClusterAddOn {
       })
     );
 
-    new cr.AwsCustomResource(
-      stack,
-      `${envKey}-OidcIssuerResource`,
-      {
-        onCreate: {
-          service: "Lambda",
-          action: "invoke",
-          parameters: {
-            FunctionName: fetchOidcIssuerLambda.functionName,
-            Payload: JSON.stringify({
-              ResourceProperties: {
-                ClusterName: this.concreteClusterName,
-              },
-            }),
-          },
-          physicalResourceId: cr.PhysicalResourceId.of(
-            `Gen3Oidc-${envKey}`
-          ),
-        },
-        onUpdate: {
-          service: "Lambda",
-          action: "invoke",
-          parameters: {
-            FunctionName: fetchOidcIssuerLambda.functionName,
-            Payload: JSON.stringify({
-              ResourceProperties: {
-                ClusterName: this.concreteClusterName,
-              },
-            }),
-          },
-          physicalResourceId: cr.PhysicalResourceId.of(
-            `Gen3Oidc-${envKey}`
-          ),
-        },
-        policy: cr.AwsCustomResourcePolicy.fromStatements([
-          new iam.PolicyStatement({
-            actions: ["lambda:InvokeFunction"],
-            resources: [fetchOidcIssuerLambda.functionArn],
-            effect: iam.Effect.ALLOW,
-          }),
-        ]),
-      }
-    );
+    const provider = new cr.Provider(stack, `${envKey}-OidcIssuerProvider`, {
+      onEventHandler: fetchOidcIssuerLambda,
+      logRetention: logs.RetentionDays.ONE_WEEK,
+    });
+
+    const oidcResource = new cdk.CustomResource(stack, `${envKey}-OidcIssuerResource`, {
+      serviceToken: provider.serviceToken,
+      properties: {
+        ClusterName: this.concreteClusterName,
+      },
+    });
+
+    oidcResource.node.addDependency(clusterInfo.cluster);
   }
 }

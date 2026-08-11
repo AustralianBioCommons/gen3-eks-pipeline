@@ -9,6 +9,11 @@ const ssm = new SSMClient({ region });
 export const handler: Handler = async (event) => {
   const clusterName = event.ResourceProperties?.ClusterName as string;
   const envKey = process.env.ENV_KEY as string;
+
+  if (event.RequestType === "Delete") {
+    return { PhysicalResourceId: event.PhysicalResourceId ?? `gen3-eks-contract-${envKey}` };
+  }
+  
   if (!clusterName) throw new Error("Missing ClusterName");
   if (!envKey) throw new Error("Missing ENV_KEY");
 
